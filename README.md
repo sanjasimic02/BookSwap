@@ -1,0 +1,2 @@
+# BookSwap
+Aplikacija koja omogućava korisnicima da razmenjuju knjige i dele svoja mišljenja i utiske o pročitanim knjigama.Korisnik može dodati određenu knjigu za razmenu na svojoj trenutnoj lokaciji, fotografiju knjige, opise i dodatne informacije. Drugi korisnici mogu pretraživati knjige na mapi, pregledati dostupne knjige,kontaktirati vlasnike koji su u blizini. Takođe, korisnici mogu pisati recenzije, ocenjivati knjige i deliti svoje omiljene citate sa prijateljima.
