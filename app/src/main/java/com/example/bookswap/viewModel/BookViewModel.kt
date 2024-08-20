@@ -30,6 +30,11 @@ class BookViewModel : ViewModel() {
         _books.value = repository.getAllBooks()
     }
 
+//    fun getBookById(bookId: String): Book? {
+//        return books.value.data?.find { it.id == bookId }
+//    }
+
+
     fun saveBook(
         location: MutableState<LatLng?>,
         description: String,

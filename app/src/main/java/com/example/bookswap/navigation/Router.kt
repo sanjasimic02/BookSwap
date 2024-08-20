@@ -3,6 +3,7 @@ package com.example.bookswap.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavType
@@ -11,11 +12,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bookswap.models.User
+import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.LoginScreen
 import com.example.bookswap.screens.MapScreen
 import com.example.bookswap.screens.RegistrationScreen
 import com.example.bookswap.screens.StartScreen
 import com.example.bookswap.screens.UserProfileScreen
+import com.example.bookswap.screens.bookScreens.BookDetailsScreen
 import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -60,6 +63,30 @@ fun Router(
                 cameraPositionState = rememberCameraPositionState(),
                 myLocation = remember { mutableStateOf(null) })
         }
+
+        composable(
+            "bookDetails/{bookId}",
+            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId")
+            val booksResource = bookViewModel.books.collectAsState().value
+
+            when (booksResource) {
+                is Resource.Success -> {
+                    val book = booksResource.result.find { it.id == bookId }
+                    book?.let {
+                        BookDetailsScreen(book = it, onBack = { navController.popBackStack() })
+                    }
+                }
+                is Resource.Loading -> {
+                    // Handle loading state
+                }
+                is Resource.Failure -> {
+                    // Handle failure state
+                }
+            }
+        }
+
     }
 }
 

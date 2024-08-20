@@ -223,7 +223,10 @@ fun MapScreen(
                             // Navigate to the book details screen
 
                             Log.d("MapScreen", "Clicked on book: ${book.title}")
-                            false
+                            //false
+
+                            navController.navigate("bookDetails/${book.id}")
+                            true
                         },
 
                     )
