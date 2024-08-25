@@ -16,6 +16,7 @@ import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.LoginScreen
 import com.example.bookswap.screens.MapScreen
 import com.example.bookswap.screens.RegistrationScreen
+import com.example.bookswap.screens.ServiceSettings
 import com.example.bookswap.screens.StartScreen
 import com.example.bookswap.screens.UserProfileScreen
 import com.example.bookswap.screens.bookScreens.BookDetailsScreen
@@ -62,6 +63,9 @@ fun Router(
             MapScreen(viewModel = viewModel, bookViewModel = bookViewModel, navController = navController,
                 cameraPositionState = rememberCameraPositionState(),
                 myLocation = remember { mutableStateOf(null) })
+        }
+        composable(Routes.serviceSettings){
+            ServiceSettings(navController = navController)
         }
 
         composable(

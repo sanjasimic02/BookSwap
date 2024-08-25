@@ -98,7 +98,7 @@ fun UserProfileScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF6D4C41))
-                .padding(16.dp)
+                .padding(1.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -298,29 +298,61 @@ fun UserProfileScreen(
                 .fillMaxWidth()
                 .padding(top = 20.dp)
         ) {
-            Button(
-                onClick = {
-                    navController.navigate(Routes.mapScreen)
-                },
-                enabled = buttonIsEnabled.value,
+            Column(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(top = 16.dp)
-                    .size(width = 200.dp, height = 50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6D4C41),
-                    contentColor = Color(0xFF3C0B1A)
-                )
+                    .fillMaxWidth()
+                    .padding(top = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "View map",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFEDC9AF),
+                Button(
+                    onClick = {
+                        navController.navigate(Routes.mapScreen)
+                    },
+                    enabled = buttonIsEnabled.value,
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .size(width = 200.dp, height = 50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6D4C41),
+                        contentColor = Color(0xFF3C0B1A)
                     )
-                )
+                ) {
+                    Text(
+                        text = "View map",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFEDC9AF)
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate(Routes.serviceSettings)
+                    },
+                    enabled = buttonIsEnabled.value,
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .size(width = 200.dp, height = 50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6D4C41),
+                        contentColor = Color(0xFF3C0B1A)
+                    )
+                ) {
+                    Text(
+                        text = "Service Settings",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFEDC9AF)
+                        )
+                    )
+                }
             }
         }
 

@@ -26,7 +26,7 @@ fun BookSwapApp(
 ){
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    val isTrackingServiceEnabled = sharedPreferences.getBoolean("tracking_location", true)
+    val isTrackingServiceEnabled = sharedPreferences.getBoolean("tracking_location", false) //inicijalno
 
     if (ActivityCompat.checkSelfPermission(
             context,
