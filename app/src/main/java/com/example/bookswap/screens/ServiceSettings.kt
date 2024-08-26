@@ -200,11 +200,11 @@ fun ServiceSettings(
                                     Log.d("ServiceSettings", "Stop action sent")
                                 }
                                 //kad odkomentarisem i dalje radi pracenje lokacije u pozadini, a knjige u blizini ne, sto i treba
-//                                Intent(context, LocationService::class.java).apply {
-//                                    action = LocationService.ACTION_START
-//                                    context.startForegroundService(this)
-//                                    Log.d("ServiceSettings", "Start action sent")
-//                                }
+                                Intent(context, LocationService::class.java).apply {
+                                    action = LocationService.ACTION_START
+                                    context.startForegroundService(this)
+                                    Log.d("ServiceSettings", "Start action sent")
+                                }
                                 with(sharedPreferences.edit()) {
                                     putBoolean("tracking_location", false)
                                     apply()

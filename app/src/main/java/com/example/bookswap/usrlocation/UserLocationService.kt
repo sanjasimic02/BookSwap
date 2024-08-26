@@ -14,6 +14,8 @@ import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.bookswap.MainActivity
 import com.example.bookswap.R
+import com.example.bookswap.repositories.AuthRepository
+import com.example.bookswap.repositories.Resource
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,6 +26,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -178,26 +181,66 @@ class LocationService : Service() {
         return distance
     }
 
+//    private fun checkProximityToBooks(userLatitude: Double, userLongitude: Double) {
+//        val firestore = FirebaseFirestore.getInstance()
+//        firestore.collection("books").get()
+//            .addOnSuccessListener { result ->
+//                for (document in result) {
+//                    val geoPoint = document.getGeoPoint("location")
+//                    val bookUserId = document.getString("userId")
+//                    val swapStatus = document.getString("swapStatus")
+//                    if (geoPoint != null && swapStatus == "available") { //nema info o korisniku jos, jer se servis aktivira pre logovanja && bookUserId != FirebaseAuth.getInstance().currentUser!!.uid
+//                        val distance = calculateHaversineDistance(userLatitude, userLongitude, geoPoint.latitude, geoPoint.longitude)
+//                        if (distance <= 1000 && !booksWithoutDuplicates.contains(document.id) ) { //1km udaljenost
+//                            alertBookNearby(document.getString("title") ?: "Book")
+//                            booksWithoutDuplicates.add(document.id)
+//                            Log.d("NearbyBook", document.toString())
+//                        }
+//                    }
+//                }
+//            }
+//            .addOnFailureListener { e ->
+//                Log.e("LocationService", "Error fetching books", e)
+//            }
+//    }
+    //KORUTINE STA SU???
+    // Funkcija za proveru blizine knjiga, sa pozivom unutar CoroutineScope-a
     private fun checkProximityToBooks(userLatitude: Double, userLongitude: Double) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("books").get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    val geoPoint = document.getGeoPoint("location")
-                    val bookUserId = document.getString("userId")
-                    if (geoPoint != null /*&& bookUserId != currentUser.id*/) { //!!!!!
-                        val distance = calculateHaversineDistance(userLatitude, userLongitude, geoPoint.latitude, geoPoint.longitude)
-                        if (distance <= 7000 && !booksWithoutDuplicates.contains(document.id)) { //1km udaljenost
-                            alertBookNearby(document.getString("title") ?: "Book")
-                            booksWithoutDuplicates.add(document.id)
-                            Log.d("NearbyBook", document.toString())
+        val authRepository = AuthRepository()
+        // Pokrećemo korutinu unutar CoroutineScope-a
+        CoroutineScope(Dispatchers.Main).launch {
+            val userResource = authRepository.getUser()
+
+            if (userResource is Resource.Success) {
+                val currentUser = userResource.result
+
+                firestore.collection("books").get()
+                    .addOnSuccessListener { result ->
+                        for (document in result) {
+                            val geoPoint = document.getGeoPoint("location")
+                            val bookUserId = document.getString("userId")
+                            val swapStatus = document.getString("swapStatus")
+
+                            // Proveri da li je knjiga dostupna i da li pripada nekom drugom korisniku
+                            if (geoPoint != null && swapStatus == "available" && bookUserId != currentUser.id) {
+                                val distance = calculateHaversineDistance(userLatitude, userLongitude, geoPoint.latitude, geoPoint.longitude)
+
+                                if (distance <= 1000 && !booksWithoutDuplicates.contains(document.id)) {
+                                    alertBookNearby(document.getString("title") ?: "Book")
+                                    booksWithoutDuplicates.add(document.id)
+                                    Log.d("NearbyBook", document.toString())
+                                }
+                            }
                         }
                     }
-                }
+                    .addOnFailureListener { e ->
+                        Log.e("LocationService", "Error fetching books", e)
+                    }
+            } else {
+                Log.e("LocationService", "Failed to fetch current user: ${(userResource as Resource.Failure).exception.message}")
             }
-            .addOnFailureListener { e ->
-                Log.e("LocationService", "Error fetching books", e)
-            }
+        }
     }
 
     private fun alertBookNearby(bookTitle: String) {
@@ -232,5 +275,6 @@ class LocationService : Service() {
         const val EXTRA_LOCATION_LONGITUDE = "EXTRA_LOCATION_LONGITUDE"
         private const val NOTIFICATION_ID = 1
         private const val NEARBY_BOOK_NOTIFICATION_ID = 25
+        private const val RENT_NOTIFICATION_ID = 4
     }
 }

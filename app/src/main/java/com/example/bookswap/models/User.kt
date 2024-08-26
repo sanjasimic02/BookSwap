@@ -8,5 +8,6 @@ data class User(
     val password: String = "", //?
     val fullName: String = "",
     val phoneNumber: String = "",
-    val profileImg: String = ""
+    val profileImg: String = "",
+    val totalPoints: Int = 0 //kad doda knjigu dobija +5p, kad nekom iznajmi +10p, kad mu neko ostavi komentar na knjigu +7p npr
 )

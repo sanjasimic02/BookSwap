@@ -2,6 +2,7 @@ package com.example.bookswap.repositories
 
 import android.net.Uri
 import com.example.bookswap.models.Book
+import com.example.bookswap.models.Comment
 import com.google.android.gms.maps.model.LatLng
 
 interface BookRepository {
@@ -22,4 +23,8 @@ interface BookRepository {
     suspend fun getUsersBooks(
         uid: String //kog korisnika
     ): Resource<List<Book>>
+
+    suspend fun updateUserPoints(uid : String, points : Int): Resource<String>
+    suspend fun updateBookStatus(bookId: String, newStatus: String)
+    suspend fun addCommentToBook(bookId: String, comment: Comment)
 }

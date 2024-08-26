@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bookswap.models.User
 import com.example.bookswap.repositories.Resource
+import com.example.bookswap.screens.BookOwnerScreen
 import com.example.bookswap.screens.LoginScreen
 import com.example.bookswap.screens.MapScreen
 import com.example.bookswap.screens.RegistrationScreen
@@ -33,6 +34,8 @@ fun Router(
     bookViewModel : BookViewModel
 ) {
     val navController = rememberNavController()
+
+    //val currentUserId = viewModel.getCurrentUserId()
 
     NavHost(navController = navController, startDestination = Routes.startScreen) {
         composable(Routes.registrationScreen) {
@@ -67,30 +70,52 @@ fun Router(
         composable(Routes.serviceSettings){
             ServiceSettings(navController = navController)
         }
+        composable(Routes.bookOwnerScreen + "/{userId}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            BookOwnerScreen(
+                userId = userId,
+                navController = navController,
+                bookViewModel = bookViewModel,
+                userViewModel = viewModel
+            )
+        }
 
         composable(
             "bookDetails/{bookId}",
-            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("bookId") { type = NavType.StringType },
+                //navArgument("currentUser") { type = NavType.StringType },
+                    )
         ) { backStackEntry ->
             val bookId = backStackEntry.arguments?.getString("bookId")
             val booksResource = bookViewModel.books.collectAsState().value
+
+            //val userDataJson = backStackEntry.arguments?.getString("userData")
+            //val userData = Gson().fromJson(userDataJson, User::class.java)
+            //val currentUserId = FirebaseAuth.getInstance().currentUser?.uid == userData.id
 
             when (booksResource) {
                 is Resource.Success -> {
                     val book = booksResource.result.find { it.id == bookId }
                     book?.let {
-                        BookDetailsScreen(book = it, onBack = { navController.popBackStack() })
-                    }
-                }
-                is Resource.Loading -> {
-                    // Handle loading state
-                }
-                is Resource.Failure -> {
-                    // Handle failure state
+                        FirebaseAuth.getInstance().currentUser?.uid?.let { it1 ->
+                            BookDetailsScreen(book = it,
+                                currentUserId = it1,
+                                onBack = { navController.popBackStack() },
+                                //mozda treba da prosledim samo neko parce??
+                                userAuthViewModel = viewModel,
+                                bookViewModel = bookViewModel,
+                                navController = navController
+                            )
+                        }
+                            }
+                        }
+
+                is Resource.Failure -> TODO()
+                Resource.Loading -> TODO()
+            }
                 }
             }
         }
 
-    }
-}
 

@@ -27,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -43,39 +43,52 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.ColorUtils
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.bookswap.R
 import com.example.bookswap.models.Book
-import com.example.bookswap.models.User
 import com.example.bookswap.navigation.Routes
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
 
-
 @Composable
-fun UserProfileScreen(
-    currentUser : User,
+fun BookOwnerScreen(
+    userId: String,
     navController: NavController,
-    viewModel: UserAuthViewModel,
     bookViewModel : BookViewModel,
-    isCorrect : Boolean
+    userViewModel : UserAuthViewModel
 ) {
 
     val buttonIsEnabled = remember { mutableStateOf(true) }
     val isLoading = remember { mutableStateOf(false) }
 
-    bookViewModel.getUsersBooks(currentUser.id)
+    val currentUserState = userViewModel.userByIdFlow.collectAsState()
+    LaunchedEffect(userId) {
+        userViewModel.getUserById(userId)
+    }
+
+    val currentUser = when (val result = currentUserState.value) {
+        is Resource.Success -> result.result
+        is Resource.Failure -> {
+            Log.e("User data:", result.exception.message ?: "Unknown error")
+            null
+        }
+        else -> null
+    }
+
+    if (currentUser != null) {
+        bookViewModel.getUsersBooks(currentUser.id)
+    }
+    else
+    {
+        //greska
+    }
 
     val bookCollection = bookViewModel.userBooks.collectAsState()
     val listBooks = remember {
         mutableStateListOf<Book>()
     }
-
-    val red = Color(0xFF8B0000) // Osnovna boja
-    val lightenedRed = Color(ColorUtils.blendARGB(red.toArgb(), Color.White.toArgb(), 0.2f)) // Posvetljivanje
 
     bookCollection.value.let {
         when(it){
@@ -122,23 +135,20 @@ fun UserProfileScreen(
                     )
                 )
 
-                Button(
-                    onClick = { //dodaj da iskoci mali screen da pita dal si siguran
-                        viewModel.logOut()
-                        navController.navigate(Routes.loginScreen)
+                androidx.compose.material3.Button(
+                    onClick = {
+                        navController.navigateUp()
                     },
-                    enabled = buttonIsEnabled.value,
                     modifier = Modifier
-                        //.size(width = 200.dp, height = 50.dp)
                         .fillMaxHeight(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6D4C41),
                         contentColor = Color(0xFF3C0B1A)
                     )
                 ) {
-                    Text(
-                        text = "Sign out",
+                    androidx.compose.material3.Text(
+                        text = "Back",
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -146,6 +156,7 @@ fun UserProfileScreen(
                         )
                     )
                 }
+
             }
         }
 
@@ -162,80 +173,90 @@ fun UserProfileScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = currentUser.profileImg,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(140.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Color.White, CircleShape)
-                        .background(
-                            Color.White,
-                            RoundedCornerShape(70.dp)
-                        )
-                )
+                if (currentUser != null) {
+                    AsyncImage(
+                        model = currentUser.profileImg,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(140.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, Color.White, CircleShape)
+                            .background(
+                                Color.White,
+                                RoundedCornerShape(70.dp)
+                            )
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text(
-                        text = currentUser.fullName.replace('+', ' '),
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF6D4C41)
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Phone: ${currentUser.phoneNumber}",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            color = Color.Gray
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Email: ${currentUser.email}",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            color = Color.Gray
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically // Poravnanje teksta i bedža po vertikali
-                    ) {
+                    if (currentUser != null) {
                         Text(
-                            text = "Total points: ${currentUser.totalPoints}",
+                            text = currentUser.fullName.replace('+', ' '),
                             style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color(0xFF6D4C41),
-                                fontStyle = FontStyle.Italic,
-                                fontWeight = FontWeight.Bold
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6D4C41)
                             )
                         )
-                        var badge_id = R.drawable.bronza2;
-                        if(currentUser.totalPoints == 0)
-                        {
-                            badge_id = R.drawable.bronza2;
-                        }
-                        else if(currentUser.totalPoints in 1..100)
-                        {
-                            badge_id = R.drawable.srebro;
-                        }
-                        else
-                        {
-                            badge_id = R.drawable.zlato;
-                        }
-                        Spacer(modifier = Modifier.width(8.dp)) // Razmak između teksta i bedža
-
-                        Image(
-                            painter = painterResource(id = badge_id), // Zameniti sa odgovarajućim ID-jem resursa za bedž
-                            contentDescription = "Badge",
-                            modifier = Modifier.size(24.dp) // Veličina bedža
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (currentUser != null) {
+                        Text(
+                            text = "Phone: ${currentUser.phoneNumber}",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
                         )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if (currentUser != null) {
+                        Text(
+                            text = "Email: ${currentUser.email}",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if (currentUser != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically // Poravnanje teksta i bedža po vertikali
+                        ) {
+                            Text(
+                                text = "Total points: ${currentUser.totalPoints}",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF6D4C41),
+                                    fontStyle = FontStyle.Italic,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            var badge_id = R.drawable.bronza2;
+                            if(currentUser.totalPoints == 0)
+                            {
+                                badge_id = R.drawable.bronza2;
+                            }
+                            else if(currentUser.totalPoints in 1..100)
+                            {
+                                badge_id = R.drawable.srebro;
+                            }
+                            else
+                            {
+                                badge_id = R.drawable.zlato;
+                            }
+                            Spacer(modifier = Modifier.width(8.dp)) // Razmak između teksta i bedža
+
+                            Image(
+                                painter = painterResource(id = badge_id), // Zameniti sa odgovarajućim ID-jem resursa za bedž
+                                contentDescription = "Badge",
+                                modifier = Modifier.size(24.dp) // Veličina bedža
+                            )
+                        }
                     }
                 }
             }
@@ -301,66 +322,32 @@ fun UserProfileScreen(
                                     )
                                     .padding(8.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text(
-                                            text = "Title: ${book.title}",
-                                            style = TextStyle(
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF6D4C41)
-                                            )
-                                        )
-                                        Text(
-                                            text = "Author: ${book.author}",
-                                            style = TextStyle(
-                                                fontSize = 14.sp,
-                                                color = Color(0xFF6D4C41)
-                                            )
-                                        )
-                                        Text(
-                                            text = "Genre: ${book.genre}",
-                                            style = TextStyle(
-                                                fontSize = 14.sp,
-                                                color = Color.Gray
-                                            )
-                                        )
-                                    }
-
-                                    if (book.swapStatus == "unavailable") {
-                                        Button(
-                                            onClick = { bookViewModel.updateBookStatus(book.id, "available") },
-                                            enabled = buttonIsEnabled.value,
-                                            modifier = Modifier
-                                                .padding(top = 16.dp),
-                                                //.size(width = 200.dp, height = 50.dp),
-                                            shape = RoundedCornerShape(12.dp),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = lightenedRed,//Color(0xFF8B0000),
-                                                contentColor = Color(0xFF3C0B1A)
-                                            )
-                                        ) {
-                                            Text(
-                                                text = "Available",
-                                                style = TextStyle(
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color(0xFFEDC9AF)
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
+                                Text(
+                                    text = "Title: ${book.title}",
+                                    style = TextStyle(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF6D4C41)
+                                    )
+                                )
+                                Text(
+                                    text = "Author: ${book.author}",
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF6D4C41)
+                                    )
+                                )
+                                Text(
+                                    text = "Genre: ${book.genre}",
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
                             }
                         }
                     }
-
                 }
             }
         }
@@ -396,32 +383,6 @@ fun UserProfileScreen(
                 ) {
                     Text(
                         text = "View map",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFEDC9AF)
-                        )
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        navController.navigate(Routes.serviceSettings)
-                    },
-                    enabled = buttonIsEnabled.value,
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .size(width = 200.dp, height = 50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6D4C41),
-                        contentColor = Color(0xFF3C0B1A)
-                    )
-                ) {
-                    Text(
-                        text = "Service Settings",
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,

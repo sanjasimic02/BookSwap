@@ -8,4 +8,5 @@ object Routes {
     val mapScreen = "mapScreen"
     //val addBook = "addBook"
     val serviceSettings = "serviceSettings"
+    val bookOwnerScreen = "bookOwnerScreen"
 }

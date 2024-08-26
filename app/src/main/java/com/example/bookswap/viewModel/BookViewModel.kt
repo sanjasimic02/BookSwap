@@ -1,11 +1,13 @@
 package com.example.bookswap.viewModel
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.bookswap.models.Book
+import com.example.bookswap.models.Comment
 import com.example.bookswap.repositories.BookRepositoryImpl
 import com.example.bookswap.repositories.Resource
 import com.google.android.gms.maps.model.LatLng
@@ -35,6 +37,24 @@ class BookViewModel : ViewModel() {
 //    }
 
 
+
+    fun updateUserPoints(userId: String, pointsToAdd: Int) {
+        viewModelScope.launch {
+            val result = repository.updateUserPoints(userId, pointsToAdd)
+            if (result is Resource.Failure) {
+                // Handle failure case
+            }
+        }
+    }
+
+    fun addCommentToBook(bookId: String, comment: Comment) = viewModelScope.launch {
+        try {
+            repository.addCommentToBook(bookId, comment)
+        } catch (e: Exception) {
+            Log.e("BookViewModel", "Error adding comment to book", e)
+        }
+    }
+
     fun saveBook(
         location: MutableState<LatLng?>,
         description: String,
@@ -61,6 +81,17 @@ class BookViewModel : ViewModel() {
         uid: String
     ) = viewModelScope.launch {
         _userBooks.value = repository.getUsersBooks(uid)
+    }
+
+    // Ova funkcija menja status knjige u 'unavailable'
+    fun updateBookStatus(bookId: String, newStatus: String) = viewModelScope.launch {
+        try {
+
+            repository.updateBookStatus(bookId, newStatus)
+
+        } catch (e: Exception) {
+            Log.e("BookViewModel", "Error updating book status", e)
+        }
     }
 }
 

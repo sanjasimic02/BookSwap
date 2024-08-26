@@ -1,5 +1,7 @@
 package com.example.bookswap.repositories
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import com.example.bookswap.models.User
 import com.example.bookswap.services.DbService
@@ -136,6 +138,63 @@ class AuthRepository : IAuthRepository
         catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)
+        }
+    }
+
+    suspend fun getUserById(userId: String): Resource<User> {
+        return try {
+            val db = FirebaseFirestore.getInstance()
+            val userDocRef = db.collection("users").document(userId)
+            val userSnapshot = userDocRef.get().await()
+            if (userSnapshot.exists()) {
+                val user = userSnapshot.toObject(User::class.java)
+                if (user != null) {
+                    Resource.Success(user)
+                } else {
+                    Resource.Failure(Exception("User not found"))
+                }
+            } else {
+                Resource.Failure(Exception("User document does not exist"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
+    }
+
+    // Funkcija za kontaktiranje vlasnika knjige
+    override suspend fun contactOwner(context: Context, userId: String) {
+        val firestore = FirebaseFirestore.getInstance()
+
+        try {
+            // Pretraži korisnika u bazi podataka na osnovu userId
+            val userDocument = firestore.collection("users")
+                .document(userId)
+                .get()
+                .await()
+
+            if (userDocument.exists()) {
+                val phoneNumber = userDocument.getString("phoneNumber") // Pretpostavljamo da je broj telefona spremljen pod "phoneNumber"
+
+                if (!phoneNumber.isNullOrEmpty()) {
+                    // Kreiraj Intent za otvaranje aplikacije za telefoniranje
+                    val intent = Intent(Intent.ACTION_DIAL).apply {
+                        data = Uri.parse("tel:$phoneNumber")
+                    }
+
+                    // Pokreni Intent
+                    context.startActivity(intent)
+                } else {
+                    // Broj telefona nije pronađen
+
+                }
+            } else {
+                // Korisnik sa datim userId ne postoji
+
+            }
+        } catch (e: Exception) {
+            // Odlazi sa greškom
+            e.printStackTrace()
+
         }
     }
 

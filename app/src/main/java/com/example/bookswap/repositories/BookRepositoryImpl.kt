@@ -2,6 +2,7 @@ package com.example.bookswap.repositories
 
 import android.net.Uri
 import com.example.bookswap.models.Book
+import com.example.bookswap.models.Comment
 import com.example.bookswap.services.DbService
 import com.example.bookswap.services.StorageService
 import com.google.android.gms.maps.model.LatLng
@@ -50,7 +51,7 @@ class BookRepositoryImpl : BookRepository{
                     swapStatus = "available"
                     //coverImage = coverImageUrl
                 )
-               databaseService.saveBook(newBook)
+               databaseService.saveBook(newBook, currentUser.uid)
                 //ovde mogu da dodam poene nakon sto postavi knjigu??
             }
             Resource.Success("Uspesno su sačuvani svi podaci o knjizi")
@@ -82,6 +83,32 @@ class BookRepositoryImpl : BookRepository{
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)
+        }
+    }
+
+    override suspend fun updateUserPoints(uid : String, points : Int): Resource<String> {
+        return try{
+            databaseService.updateUserPoints(uid, points)
+            Resource.Success("Uspesno azurirani poeni korisnika!")
+        }catch (e: Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    // Ova funkcija ažurira status knjige u bazi podataka
+    override suspend fun updateBookStatus(bookId: String, newStatus: String) {
+        firestoreInstance.collection("books").document(bookId)
+            .update("swapStatus", newStatus)
+            .await() // Koristi 'await()' ako koristiš Kotlin Coroutines
+    }
+
+    override suspend fun addCommentToBook(bookId: String, comment: Comment) {
+        try {
+            databaseService.addCommentToBook(bookId, comment)
+        } catch (e: Exception) {
+            // Handle exception
+            throw e
         }
     }
 }

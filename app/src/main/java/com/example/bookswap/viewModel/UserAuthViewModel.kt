@@ -1,6 +1,7 @@
 package com.example.bookswap.viewModel
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -30,12 +31,33 @@ class UserAuthViewModel() : ViewModel()
     @SuppressLint("RestrictedApi")
     val allUsers: StateFlow<Resource<List<User>>?> = _allUsers
 
+    private val _userByIdFlow = MutableStateFlow<Resource<User>?>(null)
+    val userByIdFlow: StateFlow<Resource<User>?> = _userByIdFlow
+
     val currentUser: FirebaseUser?
         get() = repo.user
 
     fun getUserData() = viewModelScope.launch {
         val result = repo.getUser()
         _currentUserFlow.value = result
+    }
+
+    fun getCurrentUserId(): String? {
+        val currentUserResource = _currentUserFlow.value
+        return if (currentUserResource is Resource.Success) {
+            currentUserResource.result.id
+        } else {
+            null
+        }
+    }
+
+    fun getUserById(userId: String) = viewModelScope.launch {
+        val result = repo.getUserById(userId)
+        _userByIdFlow.value = result
+    }
+
+    suspend fun contactOwner(context: Context, userId: String) {
+        repo.contactOwner(context, userId)
     }
 
     fun getAllUsersData() = viewModelScope.launch {
@@ -48,6 +70,8 @@ class UserAuthViewModel() : ViewModel()
             _signInFlow.value = Resource.Success(repo.user!!)
         }
     }
+
+
 
     fun logIn(email: String, password: String) = viewModelScope.launch{
         _signInFlow.value = Resource.Loading
