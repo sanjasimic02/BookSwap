@@ -100,7 +100,7 @@ class BookViewModel : ViewModel() {
         try {
 
             repository.updateBookStatus(bookId, newStatus)
-
+            getAllBooks() //da bi mi azurirao flow !!!! valjda nije nista poremecenoooo!!!
         } catch (e: Exception) {
             Log.e("BookViewModel", "Error updating book status", e)
         }

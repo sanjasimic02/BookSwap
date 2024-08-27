@@ -78,6 +78,8 @@ fun MapScreen(
     val context = LocalContext.current
     val currentUserId by remember { mutableStateOf(viewModel.getCurrentUserId()) }
 
+    val currUserData = viewModel.currentUserFlow.collectAsState()
+
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     val isTrackingServiceEnabled = sharedPreferences.getBoolean("tracking_location", true)
     val lastLatitude = sharedPreferences.getString("last_latitude", null)?.toDoubleOrNull()
@@ -89,7 +91,7 @@ fun MapScreen(
     val filtersApplied = remember { mutableStateOf(false) }
     val filteredBooksList = remember { mutableStateListOf<Book>() }
 
-    // Ako postoji filtrirana knjiga, postavite poziciju kamere na nju
+    // Ako postoji filtrirana knjiga, postavljam poziciju kamere na nju
     val selectedBook = filteredBooksList.firstOrNull()
 
     LaunchedEffect(selectedBook) {
@@ -106,7 +108,6 @@ fun MapScreen(
 
     if (!isTrackingServiceEnabled && lastLatitude != null && lastLongitude != null) {
         val lastLocation = LatLng(lastLatitude, lastLongitude)
-        // Use lastLocation as the position of the map
         cameraPositionState.position = CameraPosition.fromLatLngZoom(lastLocation, 17f)
     }
 
@@ -172,7 +173,6 @@ fun MapScreen(
 //    }
 
 
-    // Register BroadcastReceiver to receive location updates
     val receiver = remember {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -232,7 +232,7 @@ fun MapScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp) // Postavljanje fiksne visine za header
+                    .height(50.dp)
                     .background(Color(0xFF6D4C41))
                     .padding(8.dp)
             ) {
@@ -252,7 +252,6 @@ fun MapScreen(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    // Dugmići skroz desno, jedan pored drugog
                     Row {
                         Button(
                             onClick = {
@@ -263,7 +262,7 @@ fun MapScreen(
                                 containerColor = Color(0xFF6D4C41),
                                 contentColor = Color(0xFF3C0B1A)
                             ),
-                            contentPadding = PaddingValues(horizontal = 8.dp) // manji padding unutar dugmeta
+                            contentPadding = PaddingValues(horizontal = 8.dp)
                         ) {
                             Text(
                                 text = "Filters",
@@ -275,11 +274,23 @@ fun MapScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(4.dp)) // Razmak između dugmića
+                        Spacer(modifier = Modifier.width(4.dp))
 
                         Button(
                             onClick = {
-                                navController.navigateUp()
+                                      navController.navigateUp()
+//                                Log.d("MapScreen", "Current User Data: $currUserData")
+//                                currUserData.value?.let { user ->
+//                                    Log.d("MapScreen", "User: $user")
+//                                    val currUserJSON = Gson().toJson(user)
+//                                    val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
+//                                    Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
+//                                    navController.navigate(Routes.userScreen + "/$encodedUsr") {
+////                                        popUpTo(Routes.mapScreen) {
+////                                            inclusive = false
+////                                        }
+//                                    }
+                            //}
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(

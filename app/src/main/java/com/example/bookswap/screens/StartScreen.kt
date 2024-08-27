@@ -46,7 +46,6 @@ fun StartScreen(
     val currentUser = viewModel.currentUserFlow.collectAsState()
     //val currentUserState = rememberUpdatedState(currentUser)
 
-
     LaunchedEffect(currentUser) {
         Log.d("[DEBUG]", "CurrentUser: ${currentUser.value}")
 

@@ -366,10 +366,9 @@ fun UserProfileScreen(
         }
 
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(
-
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp)
@@ -404,7 +403,33 @@ fun UserProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate(Routes.tableScreen)
+                    },
+                    enabled = buttonIsEnabled.value,
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .size(width = 200.dp, height = 50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6D4C41),
+                        contentColor = Color(0xFF3C0B1A)
+                    )
+                ) {
+                    Text(
+                        text = "All Books",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFEDC9AF)
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Button(
                     onClick = {
@@ -429,6 +454,9 @@ fun UserProfileScreen(
                         )
                     )
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
             }
         }
 

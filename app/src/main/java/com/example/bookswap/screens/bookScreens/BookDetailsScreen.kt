@@ -262,7 +262,7 @@ fun BookDetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
-                if (!isBookOwner) {
+                if (!isBookOwner && book.swapStatus == "available") {
                     Button(
                         onClick = {
                             scope.launch {
@@ -297,7 +297,7 @@ fun BookDetailsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                if (!isBookOwner) {
+                if (!isBookOwner && book.swapStatus == "available") {
                     Button(
                         onClick = { handleRentBookClick() },
                         modifier = Modifier
@@ -323,7 +323,10 @@ fun BookDetailsScreen(
                 //Spacer(modifier = Modifier.weight(1f))
 
                 Button(
-                    onClick = onBack,
+                    onClick =
+                    {
+                        navController.navigate(Routes.mapScreen)
+                    },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
