@@ -159,49 +159,101 @@ fun LoginScreen(
 
             }
 
-            signInFlow.value.let {result ->
-                when (result) {
+//            signInFlow.value.let {result ->
+//                when (result) {
+//                    is Resource.Failure -> {
+//                        isLoading.value = false
+//                        Log.d("[ERROR]", result.exception.message.toString())
+//                    }
+//                    is Resource.Success -> {
+//                        Log.d("[DEBUG]", "Login successful, fetching user data.")
+//                        LaunchedEffect(Unit) {
+//                            viewModel.getUserData() //preuzmi podatke o korisniku
+//                            val userResource = currUserData.value
+//                            if (userResource is Resource.Success) {
+//                                Log.d("[DEBUG]", "User data fetched successfully.")
+//                                currentUser.value = userResource.result
+//                            } else {
+//                                Log.d("[DEBUG]", "Failed to fetch user data.")
+//                                currentUser.value = null
+//                            }
+//
+//                            isLoading.value = false
+//                            //sad da navigiram
+//                            currentUser.value?.let { user ->
+//                                val currUserJSON = Gson().toJson(user)
+//                                val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
+//                                Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
+//                                navController.navigate(Routes.userScreen + "/$encodedUsr") {
+//                                    popUpTo(Routes.loginScreen) {
+//                                        inclusive = true
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    is Resource.Loading -> {
+//                        isLoading.value = true
+//                        Log.d("[DEBUG]", "Loading...")
+//                    }
+//
+//                    null -> {
+//                        Log.d("[DEBUG]", "signInFlow is null")
+//                    }
+//
+//                }
+//            }
+
+            LaunchedEffect(signInFlow.value) {
+                when (val result = signInFlow.value) {
                     is Resource.Failure -> {
                         isLoading.value = false
-                        Log.d("[ERROR]", result.exception.message.toString())
+                        //Log.d("[ERROR]", result.exception.message.toString())
                     }
                     is Resource.Success -> {
                         Log.d("[DEBUG]", "Login successful, fetching user data.")
-                        LaunchedEffect(Unit) {
-                            viewModel.getUserData() //preuzmi podatke o korisniku
-                            val userResource = currUserData.value
-                            if (userResource is Resource.Success) {
-                                Log.d("[DEBUG]", "User data fetched successfully.")
-                                currentUser.value = userResource.result
-                            } else {
-                                Log.d("[DEBUG]", "Failed to fetch user data.")
-                                currentUser.value = null
-                            }
-
-                            isLoading.value = false
-                            //sad da navigiram
-                            currentUser.value?.let { user ->
-                                val currUserJSON = Gson().toJson(user)
-                                val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
-                                Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
-                                navController.navigate(Routes.userScreen + "/$encodedUsr") {
-                                    popUpTo(Routes.loginScreen) {
-                                        inclusive = true
-                                    }
-                                }
-                            }
-                        }
+                        viewModel.getUserData()
                     }
-
                     is Resource.Loading -> {
                         isLoading.value = true
                         Log.d("[DEBUG]", "Loading...")
                     }
-
                     null -> {
                         Log.d("[DEBUG]", "signInFlow is null")
                     }
+                }
+            }
 
+            LaunchedEffect(currUserData.value) {
+                when (val userResource = currUserData.value) {
+                    is Resource.Success -> {
+                        Log.d("[DEBUG]", "User data fetched successfully.")
+                        //currentUser.value = userResource.result
+                        val user = userResource.result
+                        isLoading.value = false
+
+                        //currentUser.value?.let { user ->
+                            val currUserJSON = Gson().toJson(user)
+                            val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
+                            Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
+                            navController.navigate(Routes.userScreen + "/$encodedUsr") {
+                                popUpTo(Routes.loginScreen) { inclusive = true }
+                            }
+                        //}
+                    }
+                    is Resource.Failure -> {
+                        Log.d("[DEBUG]", "Failed to fetch user data.")
+                        currentUser.value = null
+                        isLoading.value = false
+                    }
+                    is Resource.Loading -> {
+                        isLoading.value = true
+                        Log.d("[DEBUG]", "Loading user data...")
+                    }
+                    null -> {
+                        Log.d("[DEBUG]", "currUserData is null")
+                    }
                 }
             }
         }

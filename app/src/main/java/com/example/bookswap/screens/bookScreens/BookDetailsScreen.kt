@@ -72,6 +72,8 @@ fun BookDetailsScreen(
     val showSheet = remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
+    val (isButtonEnabled, setButtonEnabled) = remember { mutableStateOf(true) }
+
     // Control the sheet
     LaunchedEffect(showSheet.value) {
         if (showSheet.value) {
@@ -85,7 +87,8 @@ fun BookDetailsScreen(
 
         bookViewModel.updateUserPoints(book.userId, 10)
         bookViewModel.updateBookStatus(book.id, "unavailable")
-        Toast.makeText(context, "Rent request sent to book owner", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Book is successfully rented!", Toast.LENGTH_SHORT).show()
+        setButtonEnabled(false) // Disable the button after clicking
     }
 
 
@@ -299,7 +302,8 @@ fun BookDetailsScreen(
                             .fillMaxWidth()
                             .height(50.dp)
                             .padding(horizontal = 16.dp),
-                        colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41))
+                        colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41)),
+                        enabled = isButtonEnabled // Control button enabled state
                     ) {
                         Text(
                             text = "Rent Book", style = TextStyle(

@@ -16,6 +16,8 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,15 +40,25 @@ fun AddCommentScreen(
     onDismiss: () -> Unit
 ) {
     val (newComment, setNewComment) = remember { mutableStateOf("") }
+    val commentState = bookViewModel.specificBookComments.collectAsState()
+
+    // Load comments for this specific book
+    LaunchedEffect(book.id) {
+        bookViewModel.loadCommentsForBook(book.id)
+    }
 
     fun handleAddComment() {
-        val comment = Comment(
-            //userId = currentUserId,
-            //userName = userAuthViewModel.currentUser?.fullName ?: "Unknown User",
-            comment = newComment
-        )
-        bookViewModel.addCommentToBook(book.id, comment)
+        //val currentUser = userAuthViewModel.currentUser
+        //if (newComment.isNotBlank()) {
+            val comment = Comment(
+                //userId = currentUserId,
+                //userName = userAuthViewModel.currentUser?.fullName ?: "Unknown User",
+                comment = newComment
+            )
+       // }
+        bookViewModel.addCommentToBook(book.userId, book.id, comment)
         setNewComment("") // Clear the input field
+        //bookViewModel.loadCommentsForBook(book.id) // Refresh comments
     }
 
     Box(
@@ -73,7 +85,7 @@ fun AddCommentScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
-                items(book.comments) { comment ->
+                items(commentState.value) { comment ->
                     Column(
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {

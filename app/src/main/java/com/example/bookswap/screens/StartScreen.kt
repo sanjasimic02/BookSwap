@@ -1,6 +1,6 @@
 package com.example.bookswap.screens
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,15 +15,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -31,16 +30,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.bookswap.R
 import com.example.bookswap.navigation.Routes
 import com.example.bookswap.screens.appComponents.StartImage
 import com.example.bookswap.viewModel.UserAuthViewModel
+import com.google.gson.Gson
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun StartScreen(
     viewModel: UserAuthViewModel,
     navController: NavController
 ) {
+
+    val currentUser = viewModel.currentUserFlow.collectAsState()
+    //val currentUserState = rememberUpdatedState(currentUser)
+
+
+    LaunchedEffect(currentUser) {
+        Log.d("[DEBUG]", "CurrentUser: ${currentUser.value}")
+
+        currentUser?.value?.let { user -> //ovaj upitnik pomogao, ne pipaj ga!!!!
+            val currUserJSON = Gson().toJson(user)
+            val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
+            Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
+            navController.navigate(Routes.userScreen + "/$encodedUsr") {
+                popUpTo(Routes.startScreen) {
+                    inclusive = true
+                } //i ekran označen kao Routes.startScreen
+                // biti uklonjen iz istorije navigacije,
+                //pored svih ekrana koji su prethodili tom ekranu.
+            }
+        }
+    }
+
     StartImage {
         Box(
             modifier = Modifier
@@ -48,19 +71,13 @@ fun StartScreen(
                 .padding(30.dp),
             contentAlignment = Alignment.Center
         ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.login), // Replace with your image resource
-//                contentDescription = "Background Image",
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier.fillMaxSize()
-//            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .padding(30.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0x80F5E6CC)) // Semi-transparent overlay for readability
+                    .background(Color(0x80F5E6CC))
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center

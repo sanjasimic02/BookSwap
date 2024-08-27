@@ -80,10 +80,10 @@ class LocationService : Service() {
     private fun start(
         bookIsNearby: Boolean = false
     ) {
-        locationClient.getLocationUpdates(3000L) //pokrece da dobija azuriranja lokacije svakih 3000ms tj 3s
+        locationClient.getLocationUpdates(1000L) //pokrece da dobija azuriranja lokacije svakih 1000ms tj 3s
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
-                Log.d("Lokacija", "${location.latitude} ${location.longitude}")
+                //Log.d("Lokacija", "${location.latitude} ${location.longitude}")
 
                 // Save the last known location in SharedPreferences
                 sharedPreferences.edit()
@@ -177,7 +177,7 @@ class LocationService : Service() {
                 sin(lonDistance / 2) * sin(lonDistance / 2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         val distance = R*c;
-        Log.d("BookProximity", "Distance to book: $distance meters")
+        //Log.d("BookProximity", "Distance to book: $distance meters")
         return distance
     }
 
@@ -203,13 +203,13 @@ class LocationService : Service() {
 //                Log.e("LocationService", "Error fetching books", e)
 //            }
 //    }
-    //KORUTINE STA SU???
-    // Funkcija za proveru blizine knjiga, sa pozivom unutar CoroutineScope-a
+
+
     private fun checkProximityToBooks(userLatitude: Double, userLongitude: Double) {
         val firestore = FirebaseFirestore.getInstance()
         val authRepository = AuthRepository()
-        // Pokrećemo korutinu unutar CoroutineScope-a
-        CoroutineScope(Dispatchers.Main).launch {
+
+        serviceScope.launch {
             val userResource = authRepository.getUser()
 
             if (userResource is Resource.Success) {
@@ -223,7 +223,7 @@ class LocationService : Service() {
                             val swapStatus = document.getString("swapStatus")
 
                             // Proveri da li je knjiga dostupna i da li pripada nekom drugom korisniku
-                            if (geoPoint != null && swapStatus == "available" && bookUserId != currentUser.id) {
+                            if (geoPoint != null && swapStatus == "available" && (currentUser == null || bookUserId != currentUser.id)) {
                                 val distance = calculateHaversineDistance(userLatitude, userLongitude, geoPoint.latitude, geoPoint.longitude)
 
                                 if (distance <= 1000 && !booksWithoutDuplicates.contains(document.id)) {

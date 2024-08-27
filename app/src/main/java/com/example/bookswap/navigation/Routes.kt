@@ -6,7 +6,6 @@ object Routes {
     val startScreen = "startScreen"
     val userScreen = "userScreen"
     val mapScreen = "mapScreen"
-    //val addBook = "addBook"
     val serviceSettings = "serviceSettings"
     val bookOwnerScreen = "bookOwnerScreen"
 }

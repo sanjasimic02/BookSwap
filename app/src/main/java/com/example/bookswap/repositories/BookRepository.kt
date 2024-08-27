@@ -26,5 +26,6 @@ interface BookRepository {
 
     suspend fun updateUserPoints(uid : String, points : Int): Resource<String>
     suspend fun updateBookStatus(bookId: String, newStatus: String)
-    suspend fun addCommentToBook(bookId: String, comment: Comment)
+    suspend fun getCommentsForBook(bookId: String): List<Comment>
+    suspend fun addCommentToBook(uid: String, bookId: String, comment: Comment)
 }

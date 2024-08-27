@@ -24,6 +24,9 @@ class BookViewModel : ViewModel() {
     val books: StateFlow<Resource<List<Book>>> get() = _books
     private val _userBooks = MutableStateFlow<Resource<List<Book>>>(Resource.Success(emptyList()))
     val userBooks: StateFlow<Resource<List<Book>>> get() = _userBooks
+    private val _specificBookComments = MutableStateFlow<List<Comment>>(emptyList())
+    val specificBookComments: StateFlow<List<Comment>> = _specificBookComments
+
 
     init {
         getAllBooks()
@@ -31,12 +34,6 @@ class BookViewModel : ViewModel() {
     fun getAllBooks() = viewModelScope.launch {
         _books.value = repository.getAllBooks()
     }
-
-//    fun getBookById(bookId: String): Book? {
-//        return books.value.data?.find { it.id == bookId }
-//    }
-
-
 
     fun updateUserPoints(userId: String, pointsToAdd: Int) {
         viewModelScope.launch {
@@ -47,9 +44,23 @@ class BookViewModel : ViewModel() {
         }
     }
 
-    fun addCommentToBook(bookId: String, comment: Comment) = viewModelScope.launch {
+    fun loadCommentsForBook(bookId: String) = viewModelScope.launch {
         try {
-            repository.addCommentToBook(bookId, comment)
+            _specificBookComments.value = repository.getCommentsForBook(bookId)
+        } catch (e: Exception) {
+            Log.e("BookViewModel", "Error loading comments for book", e)
+        }
+    }
+
+
+    fun addCommentToBook(uid: String, bookId: String, comment: Comment) = viewModelScope.launch {
+        try {
+            repository.addCommentToBook(uid, bookId, comment)
+
+            val updatedComments = _specificBookComments.value.toMutableList().apply {
+                add(comment)
+            }
+            _specificBookComments.value = updatedComments
         } catch (e: Exception) {
             Log.e("BookViewModel", "Error adding comment to book", e)
         }
@@ -75,6 +86,7 @@ class BookViewModel : ViewModel() {
             bookImages = bookImages
         )
         _bookFlow.value = Resource.Success("Knjiga je uspesno dodata!")
+        getAllBooks() // Osveži listu knjiga nakon dodavanja
     }
 
     fun getUsersBooks(

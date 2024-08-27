@@ -80,7 +80,7 @@ fun UserProfileScreen(
     bookCollection.value.let {
         when(it){
             is Resource.Success -> {
-                Log.d("Book data:", it.toString())
+                //Log.d("Book data:", it.toString())
                 listBooks.clear()
                 listBooks.addAll(it.result)
             }

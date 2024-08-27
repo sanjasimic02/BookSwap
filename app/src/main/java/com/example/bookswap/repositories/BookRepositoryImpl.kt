@@ -1,6 +1,7 @@
 package com.example.bookswap.repositories
 
 import android.net.Uri
+import android.util.Log
 import com.example.bookswap.models.Book
 import com.example.bookswap.models.Comment
 import com.example.bookswap.services.DbService
@@ -103,9 +104,21 @@ class BookRepositoryImpl : BookRepository{
             .await() // Koristi 'await()' ako koristiš Kotlin Coroutines
     }
 
-    override suspend fun addCommentToBook(bookId: String, comment: Comment) {
+    override suspend fun getCommentsForBook(bookId: String): List<Comment> {
+        return try {
+            val bookDocument = firestoreInstance.collection("books").document(bookId).get().await()
+            val comments = bookDocument.toObject(Book::class.java)?.comments ?: emptyList()
+            comments
+        } catch (e: Exception) {
+            Log.e("BookRepositoryImpl", "Error fetching comments for book", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun addCommentToBook(uid: String, bookId: String, comment: Comment) {
         try {
             databaseService.addCommentToBook(bookId, comment)
+            databaseService.updateUserPoints(uid, 3) //3 poena korisnik dobija dodavanjem komentara
         } catch (e: Exception) {
             // Handle exception
             throw e

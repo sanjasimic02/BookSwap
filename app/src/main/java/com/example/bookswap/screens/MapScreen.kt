@@ -100,23 +100,25 @@ fun MapScreen(
     //val lightenedBrown = Color(ColorUtils.blendARGB(brown.toArgb(), Color.White.toArgb(), 0.05f))
 
     // Handle book loading states
-    bookCollection.value.let {
-        when (it) {
-            is Resource.Success -> {
-                booksList.clear()
-                booksList.addAll(it.result)
-            }
+    LaunchedEffect(bookCollection) { //dodato da se na svaku promenu ovo desava
+        bookCollection.value.let {
+            when (it) {
+                is Resource.Success -> {
+                    booksList.clear()
+                    booksList.addAll(it.result)
+                }
 
-            is Resource.Loading -> {
-                Log.d("MapScreen", "Loading books...")
-            }
+                is Resource.Loading -> {
+                    Log.d("MapScreen", "Loading books...")
+                }
 
-            is Resource.Failure -> {
-                Log.e("MapScreen", "Failed to load books:")
-            }
+                is Resource.Failure -> {
+                    Log.e("MapScreen", "Failed to load books:")
+                }
 
-            null -> {
-                Log.d("MapScreen", "No books available")
+                null -> {
+                    Log.d("MapScreen", "No books available")
+                }
             }
         }
     }
