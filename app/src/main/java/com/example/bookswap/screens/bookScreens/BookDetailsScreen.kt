@@ -118,6 +118,7 @@ fun BookDetailsScreen(
             // Header
             Box(
                 modifier = Modifier
+                    .height(40.dp)
                     .fillMaxWidth()
                     .background(Color(0xFF6D4C41))
                     .padding(1.dp)
@@ -136,26 +137,28 @@ fun BookDetailsScreen(
                         )
                     )
 
-                    androidx.compose.material3.Button(
-                        onClick = {
-                            navController.navigate("${Routes.bookOwnerScreen}/${book.userId}")
-                        },
-                        modifier = Modifier
-                            .fillMaxHeight(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF6D4C41),
-                            contentColor = Color(0xFF3C0B1A)
-                        )
-                    ) {
-                        androidx.compose.material3.Text(
-                            text = "Visit Book Owner",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFEDC9AF),
+                    if(!isBookOwner) {
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                navController.navigate("${Routes.bookOwnerScreen}/${book.userId}")
+                            },
+                            modifier = Modifier
+                                .fillMaxHeight(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF6D4C41),
+                                contentColor = Color(0xFF3C0B1A)
                             )
-                        )
+                        ) {
+                            androidx.compose.material3.Text(
+                                text = "Visit Book Owner",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFEDC9AF),
+                                )
+                            )
+                        }
                     }
                 }
             }

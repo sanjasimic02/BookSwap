@@ -1,0 +1,134 @@
+package com.example.bookswap.screens.bookScreens
+
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.bookswap.screens.appComponents.FilterOptionRow
+
+@Composable
+fun FilterDialog(
+    isDialogOpen: MutableState<Boolean>,
+    onDismissRequest: () -> Unit,
+    onApplyFilters: (Map<String, String>) -> Unit
+) {
+    if (isDialogOpen.value) {
+        val filterOptions = remember { mutableStateOf(mapOf<String, String>()) }
+
+        Box(
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(20.dp, Color(0xFF6D4C41)),
+                elevation = 8.dp, // Add shadow for more prominent effect
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFFF5E6CC) // Make the dialog background transparent
+            ) {
+                AlertDialog(
+                    onDismissRequest = onDismissRequest,
+                    title = {
+                        Text(
+                            text = "Filter Books",
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF6D4C41),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    text = {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Spacer(modifier = Modifier.height(20.dp)) // Normalan razmak između redova
+
+                            FilterOptionRow(label = "Title", filterOptions = filterOptions, key = "title")
+                            Spacer(modifier = Modifier.height(16.dp)) // Normalan razmak između redova
+
+                            FilterOptionRow(label = "Author", filterOptions = filterOptions, key = "author")
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            FilterOptionRow(label = "Genre", filterOptions = filterOptions, key = "genre")
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            FilterOptionRow(label = "Language", filterOptions = filterOptions, key = "language")
+                        }
+                    },
+                    buttons = {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.End // Align buttons to the end
+                        ) {
+                            androidx.compose.material3.Button(
+                                onClick = onDismissRequest,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF6D4C41),
+                                    contentColor = Color(0xFF3C0B1A)
+                                )
+                            ) {
+                                androidx.compose.material3.Text(
+                                    text = "Cancel",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFEDC9AF),
+                                    )
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            androidx.compose.material3.Button(
+                                onClick = {
+                                    onApplyFilters(filterOptions.value)
+                                    Log.d("FilterDialog", "Filters applied: ${filterOptions.value}")
+                                    onDismissRequest()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF6D4C41),
+                                    contentColor = Color(0xFF3C0B1A)
+                                )
+                            ) {
+                                androidx.compose.material3.Text(
+                                    text = "Apply",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFEDC9AF),
+                                    )
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+}

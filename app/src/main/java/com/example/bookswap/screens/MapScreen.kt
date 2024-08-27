@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ import com.example.bookswap.models.Book
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.appComponents.bitmapDescriptorFromVector2
 import com.example.bookswap.screens.bookScreens.AddBookScreen
+import com.example.bookswap.screens.bookScreens.FilterDialog
 import com.example.bookswap.usrlocation.LocationService
 import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
@@ -82,49 +84,93 @@ fun MapScreen(
     val lastLongitude = sharedPreferences.getString("last_longitude", null)?.toDoubleOrNull()
 
 
+    val isDialogOpen = remember { mutableStateOf(false) }
+    val filters = remember { mutableStateOf(mapOf<String, String>()) }
+    val filtersApplied = remember { mutableStateOf(false) }
+    val filteredBooksList = remember { mutableStateListOf<Book>() }
+
+    // Ako postoji filtrirana knjiga, postavite poziciju kamere na nju
+    val selectedBook = filteredBooksList.firstOrNull()
+
+    LaunchedEffect(selectedBook) {
+        selectedBook?.let { book ->
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                LatLng(book.location.latitude, book.location.longitude),
+                12f // Zoom nivo
+            )
+        }
+    }
+
+    val bookCollection = bookViewModel.books.collectAsState()
+    val booksList = remember { mutableListOf<Book>() }
+
     if (!isTrackingServiceEnabled && lastLatitude != null && lastLongitude != null) {
         val lastLocation = LatLng(lastLatitude, lastLongitude)
         // Use lastLocation as the position of the map
         cameraPositionState.position = CameraPosition.fromLatLngZoom(lastLocation, 17f)
     }
 
-    // val showDialog = remember { mutableStateOf(false) }
-
     val showSheet = remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
-    val bookCollection = bookViewModel.books.collectAsState()
-    val booksList = remember { mutableListOf<Book>() }
 
-    //val brown = Color(0xFFFAF3E0) // Osnovna boja
-    //val lightenedBrown = Color(ColorUtils.blendARGB(brown.toArgb(), Color.White.toArgb(), 0.05f))
-
-    // Handle book loading states
-    LaunchedEffect(bookCollection) { //dodato da se na svaku promenu ovo desava
+    LaunchedEffect(bookCollection.value, filtersApplied.value) {
         bookCollection.value.let {
             when (it) {
                 is Resource.Success -> {
                     booksList.clear()
                     booksList.addAll(it.result)
+                    if (filtersApplied.value) {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(
+                            it.result.filter { book ->
+                                (filters.value["title"]?.let { book.title.contains(it, ignoreCase = true) } ?: true) &&
+                                        (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
+                                        (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
+                                        (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)
+                            }
+                        )
+                    } else {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(it.result)
+                    }
+                    Log.d("MapScreen", "Filtered books list: ${filteredBooksList.toList()}")
                 }
-
-                is Resource.Loading -> {
-                    Log.d("MapScreen", "Loading books...")
-                }
-
-                is Resource.Failure -> {
-                    Log.e("MapScreen", "Failed to load books:")
-                }
-
-                null -> {
-                    Log.d("MapScreen", "No books available")
-                }
+                is Resource.Failure -> TODO()
+                Resource.Loading -> TODO()
             }
         }
     }
 
+    LaunchedEffect(filteredBooksList) {
+        Log.d("MapScreen", "Filtered books list updated: $filteredBooksList")
+    }
 
-    Log.d("MapScreen", "MapScreen Composable Started")
+
+//    // Handle book loading states
+//    LaunchedEffect(bookCollection) { //dodato da se na svaku promenu ovo desava
+//        bookCollection.value.let {
+//            when (it) {
+//                is Resource.Success -> {
+//                    booksList.clear()
+//                    booksList.addAll(it.result)
+//                }
+//
+//                is Resource.Loading -> {
+//                    Log.d("MapScreen", "Loading books...")
+//                }
+//
+//                is Resource.Failure -> {
+//                    Log.e("MapScreen", "Failed to load books:")
+//                }
+//
+//                null -> {
+//                    Log.d("MapScreen", "No books available")
+//                }
+//            }
+//        }
+//    }
+
 
     // Register BroadcastReceiver to receive location updates
     val receiver = remember {
@@ -142,26 +188,20 @@ fun MapScreen(
         }
     }
 
-    // Register the receiver
     DisposableEffect(context) {
-        //Log.d("MapScreen", "Registering BroadcastReceiver")
-
         LocalBroadcastManager.getInstance(context)
             .registerReceiver(receiver, IntentFilter(LocationService.ACTION_LOCATION_UPDATE))
         onDispose {
-            //Log.d("MapScreen", "Unregistering BroadcastReceiver")
-
             LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
         }
     }
 
-    LaunchedEffect(myLocation.value) {//dodala launched effect
+    LaunchedEffect(myLocation.value) {
         myLocation.value?.let { location ->
             cameraPositionState.position = CameraPosition.fromLatLngZoom(location, 17f)
         }
     }
 
-    // Control the sheet
     LaunchedEffect(showSheet.value) {
         if (showSheet.value) {
             sheetState.show()
@@ -169,7 +209,6 @@ fun MapScreen(
             sheetState.hide()
         }
     }
-
 
     ModalBottomSheetLayout(
         sheetState = sheetState,
@@ -217,7 +256,7 @@ fun MapScreen(
                     Row {
                         Button(
                             onClick = {
-                                // da otvori ne nov screen nego ness drugo sto postoji haha, da izabere filtere
+                                isDialogOpen.value = true
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -265,7 +304,7 @@ fun MapScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Osigurava da Box za mapu zauzme preostali prostor
+                    .weight(1f)
             ) {
                 GoogleMap(
                     cameraPositionState = cameraPositionState,
@@ -283,14 +322,8 @@ fun MapScreen(
                         )
                     }
 
-                    // Display markers for all books
-                    booksList.forEach { book ->
-                        Log.d(
-                            "MapScreen",
-                            "Book: ${book.title}, Location: ${book.location.latitude}, ${book.location.longitude}"
-                        )
+                    filteredBooksList.forEach { book ->
                         val bookLocation = LatLng(book.location.latitude, book.location.longitude)
-
                         val markerIcon = if (book.userId == currentUserId) {
                             bitmapDescriptorFromVector2(context, R.drawable.book_marker)
                         } else {
@@ -299,7 +332,8 @@ fun MapScreen(
 
                         if (book.swapStatus == "available") {
                             Marker(
-                                state = MarkerState(position = bookLocation),
+                                //position = LatLng(book.location.latitude, book.location.longitude),
+                                state = MarkerState(position = LatLng(book.location.latitude, book.location.longitude)),
                                 title = book.title,
                                 snippet = "By ${book.author}",
                                 icon = markerIcon,
@@ -313,9 +347,22 @@ fun MapScreen(
                     }
                 }
             }
+
+            FilterDialog(
+                isDialogOpen = isDialogOpen,
+                onDismissRequest = { isDialogOpen.value = false },
+                onApplyFilters = { newFilters ->
+                    filters.value = newFilters
+                    Log.d("MapScreen", "Filters: ${filters.value}")
+                    filtersApplied.value = true
+                    Log.d("MapScreen", "Filters Applied: ${filtersApplied.value}")
+                }
+            )
+        }
         }
     }
-}
+
+
 
 
 
