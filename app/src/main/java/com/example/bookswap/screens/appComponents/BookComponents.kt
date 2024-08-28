@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,7 +26,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -278,5 +283,144 @@ fun FilterOptionRow(
             ),
             singleLine = true
         )
+    }
+}
+
+@Composable
+fun FilterLanguage(
+    //label: String,
+    filterOptions: MutableState<Map<String, String>>,
+    key: String
+) {
+    val text = remember { mutableStateOf(filterOptions.value[key] ?: "") }
+
+    Column(
+        modifier = Modifier
+            //.padding(16.dp)
+    ) {
+        // "Language" label
+        Text(
+            text = "Language:",
+            style = TextStyle(
+                fontSize = 16.sp,
+                color = Color(0xFF6D4C41)
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Row(
+                modifier = Modifier.padding(end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = text.value == "Srpski",
+                    onClick = {
+                        text.value = "Srpski"
+                        filterOptions.value = filterOptions.value.toMutableMap().apply { put(key, text.value) }
+                    },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color(0xFF6D4C41)
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Srpski",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        color = Color(0xFF6D4C41)
+                    )
+                )
+            }
+
+            // English Radio Button and Label
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = text.value == "English",
+                    onClick = {
+                        text.value = "English"
+                        filterOptions.value = filterOptions.value.toMutableMap().apply { put(key, text.value) }
+                    },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color(0xFF6D4C41)
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp)) // Small space between RadioButton and Label
+                Text(
+                    text = "English",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        color = Color(0xFF6D4C41)
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomDropdownMenu(
+    filterOptions: MutableState<Map<String, String>>,
+    key: String,
+    options: List<String>
+) {
+    val text = remember { mutableStateOf(filterOptions.value[key] ?: "") }
+    val expanded = remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+            //.background(Color(0xFFEDC9AF)),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Genre:",
+            color = Color(0xFF6D4C41),
+            modifier = Modifier.weight(1f)
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(2f)
+                .padding(start = 8.dp)
+                .height(56.dp)
+                .clickable { expanded.value = true }
+                .background(
+                    color = Color(0xFF6D4C41).copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Text(
+                text = text.value.ifEmpty { "Select genre" },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.CenterStart),
+                color = Color(0xFFEDC9AF)
+            )
+
+            DropdownMenu(
+                expanded = expanded.value,
+                onDismissRequest = { expanded.value = false },
+                //modifier = Modifier.background(Color(0xFFEDC9AF))
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(text = option) },
+                        onClick = {
+                            text.value = option
+                            filterOptions.value = filterOptions.value.toMutableMap().apply { put(key, option) }
+                            expanded.value = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }

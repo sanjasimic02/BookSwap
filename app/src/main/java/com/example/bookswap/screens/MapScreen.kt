@@ -6,8 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +22,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -43,6 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -91,15 +102,25 @@ fun MapScreen(
     val filtersApplied = remember { mutableStateOf(false) }
     val filteredBooksList = remember { mutableStateListOf<Book>() }
 
+    val isSearchBarVisible = remember { mutableStateOf(false) }
+    val searchApplied = remember { mutableStateOf(false) }
+    val searchQuery = remember { mutableStateOf("") }
+
     // Ako postoji filtrirana knjiga, postavljam poziciju kamere na nju
     val selectedBook = filteredBooksList.firstOrNull()
 
     LaunchedEffect(selectedBook) {
         selectedBook?.let { book ->
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                LatLng(book.location.latitude, book.location.longitude),
-                12f // Zoom nivo
-            )
+            if(book.swapStatus == "available") {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                    LatLng(book.location.latitude, book.location.longitude),
+                    17f // Zoom nivo
+                )
+            }
+            else
+            {
+                Toast.makeText(context, "No results!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -115,23 +136,80 @@ fun MapScreen(
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
 
-    LaunchedEffect(bookCollection.value, filtersApplied.value) {
+//    LaunchedEffect(bookCollection.value, filtersApplied.value) {
+//        bookCollection.value.let {
+//            when (it) {
+//                is Resource.Success -> {
+//                    booksList.clear()
+//                    booksList.addAll(it.result)
+//                    if (filtersApplied.value) {
+//                        filteredBooksList.clear()
+//                        filteredBooksList.addAll(
+//                            it.result.filter { book ->
+//                                //(filters.value["title"]?.let { book.title.contains(it, ignoreCase = true) } ?: true) &&
+//
+//                                        (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
+//                                        (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
+//                                        (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)
+//                            }
+//                        )
+//                    } else {
+//                        filteredBooksList.clear()
+//                        filteredBooksList.addAll(it.result)
+//                    }
+//                    Log.d("MapScreen", "Filtered books list: ${filteredBooksList.toList()}")
+//                }
+//                is Resource.Failure -> TODO()
+//                Resource.Loading -> TODO()
+//            }
+//        }
+//    }
+    LaunchedEffect(bookCollection.value, filtersApplied.value, searchQuery.value, searchApplied.value) {
+        Log.d("TableScreen", "LaunchedEffect triggered")
         bookCollection.value.let {
             when (it) {
                 is Resource.Success -> {
                     booksList.clear()
                     booksList.addAll(it.result)
-                    if (filtersApplied.value) {
+                    if(filtersApplied.value && searchApplied.value)
+                    {
                         filteredBooksList.clear()
                         filteredBooksList.addAll(
                             it.result.filter { book ->
-                                (filters.value["title"]?.let { book.title.contains(it, ignoreCase = true) } ?: true) &&
+                                (book.title.contains(searchQuery.value, ignoreCase = true)) && ( //umesto da mi title bude u filters
                                         (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
+                                                (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
+                                                (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true))
+                            }
+                        )
+
+                    }
+                    else if (filtersApplied.value) {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(
+                            it.result.filter { book ->
+                                //(book.title.contains(searchQuery.value, ignoreCase = true)) || ( //umesto da mi title bude u filters
+                                (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
                                         (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
                                         (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)
                             }
                         )
-                    } else {
+
+                    }
+                    else if(searchApplied.value)
+                    {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(
+                            it.result.filter { book ->
+                                book.title.contains(searchQuery.value, ignoreCase = true)
+                            }
+                        )
+//                        if(filteredBooksList.size == 0)
+//                        {
+//                            Toast.makeText(context, "No results!", Toast.LENGTH_SHORT).show()
+//                        }
+                    }
+                    else {
                         filteredBooksList.clear()
                         filteredBooksList.addAll(it.result)
                     }
@@ -146,31 +224,6 @@ fun MapScreen(
     LaunchedEffect(filteredBooksList) {
         Log.d("MapScreen", "Filtered books list updated: $filteredBooksList")
     }
-
-
-//    // Handle book loading states
-//    LaunchedEffect(bookCollection) { //dodato da se na svaku promenu ovo desava
-//        bookCollection.value.let {
-//            when (it) {
-//                is Resource.Success -> {
-//                    booksList.clear()
-//                    booksList.addAll(it.result)
-//                }
-//
-//                is Resource.Loading -> {
-//                    Log.d("MapScreen", "Loading books...")
-//                }
-//
-//                is Resource.Failure -> {
-//                    Log.e("MapScreen", "Failed to load books:")
-//                }
-//
-//                null -> {
-//                    Log.d("MapScreen", "No books available")
-//                }
-//            }
-//        }
-//    }
 
 
     val receiver = remember {
@@ -232,12 +285,11 @@ fun MapScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp) // Postavljanje fiksne visine za header
                     .background(Color(0xFF6D4C41))
                     .padding(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
+                Row( modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -252,7 +304,23 @@ fun MapScreen(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    Row {
+                    Row(
+                        //modifier = Modifier.fillMaxWidth(),
+                        //horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        // Search Icon
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color(0xFFEDC9AF),
+                            modifier = Modifier
+                                .clickable {
+                                    isSearchBarVisible.value = true
+                                }
+                        )
+
                         Button(
                             onClick = {
                                 isDialogOpen.value = true
@@ -274,23 +342,25 @@ fun MapScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            tint = Color(0xFFEDC9AF),
+                            modifier = Modifier
+                                .clickable {
+                                    searchApplied.value = false
+                                    filtersApplied.value = false
+                                    isSearchBarVisible.value = false
+                                },
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
 
                         Button(
                             onClick = {
-                                      navController.navigateUp()
-//                                Log.d("MapScreen", "Current User Data: $currUserData")
-//                                currUserData.value?.let { user ->
-//                                    Log.d("MapScreen", "User: $user")
-//                                    val currUserJSON = Gson().toJson(user)
-//                                    val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
-//                                    Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
-//                                    navController.navigate(Routes.userScreen + "/$encodedUsr") {
-////                                        popUpTo(Routes.mapScreen) {
-////                                            inclusive = false
-////                                        }
-//                                    }
-                            //}
+                                navController.navigateUp()
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -309,6 +379,78 @@ fun MapScreen(
                             )
                         }
                     }
+                }
+            }
+
+            // Search Bar
+            if (isSearchBarVisible.value) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        value = searchQuery.value,
+                        onValueChange = { newValue ->
+                            searchQuery.value = newValue
+                        },
+                        singleLine = true,
+                        placeholder = {
+                            Text(
+                                text = "Search book by title...",
+                                style = TextStyle(
+                                    color = Color.Gray
+                                )
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "",
+                                tint = Color(0xFF6D4C41)
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                        ),
+                        visualTransformation = VisualTransformation.None,
+                        keyboardOptions = KeyboardOptions.Default
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            searchApplied.value = true
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color(0xFF6D4C41)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Text(text = "Apply")
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh",
+                        tint = Color(0xFF6D4C41),
+                        modifier = Modifier
+                            .clickable {
+                                searchApplied.value = false
+                                filtersApplied.value = false
+                                isSearchBarVisible.value = false
+                            },
+                    )
                 }
             }
             // Map

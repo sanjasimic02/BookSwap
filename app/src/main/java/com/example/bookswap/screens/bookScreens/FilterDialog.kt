@@ -28,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.bookswap.screens.appComponents.CustomDropdownMenu
+import com.example.bookswap.screens.appComponents.FilterLanguage
 import com.example.bookswap.screens.appComponents.FilterOptionRow
 
 @Composable
@@ -38,6 +40,7 @@ fun FilterDialog(
 ) {
     if (isDialogOpen.value) {
         val filterOptions = remember { mutableStateOf(mapOf<String, String>()) }
+        val genres = listOf("Romance", "Drama", "Popularna psihologija", "Fiction", "Non-fiction", "Sci-Fi", "Fantasy", "Mystery")
 
         Box(
             modifier = Modifier
@@ -46,9 +49,9 @@ fun FilterDialog(
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 border = BorderStroke(20.dp, Color(0xFF6D4C41)),
-                elevation = 8.dp, // Add shadow for more prominent effect
+                elevation = 8.dp,
                 modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFFF5E6CC) // Make the dialog background transparent
+                color = Color(0xFFF5E6CC)
             ) {
                 AlertDialog(
                     onDismissRequest = onDismissRequest,
@@ -69,16 +72,16 @@ fun FilterDialog(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Spacer(modifier = Modifier.height(20.dp)) // Normalan razmak između redova
 
-                            FilterOptionRow(label = "Title", filterOptions = filterOptions, key = "title")
-                            Spacer(modifier = Modifier.height(16.dp)) // Normalan razmak između redova
+//                            FilterOptionRow(label = "Title", filterOptions = filterOptions, key = "title")
+//                            Spacer(modifier = Modifier.height(16.dp)) // Normalan razmak između redova
 
-                            FilterOptionRow(label = "Author", filterOptions = filterOptions, key = "author")
+                            FilterOptionRow(label = "Author:", filterOptions = filterOptions, key = "author")
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            FilterOptionRow(label = "Genre", filterOptions = filterOptions, key = "genre")
+                            CustomDropdownMenu(filterOptions = filterOptions, key = "genre", options = genres)
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            FilterOptionRow(label = "Language", filterOptions = filterOptions, key = "language")
+                            FilterLanguage(filterOptions = filterOptions, key = "language")
                         }
                     },
                     buttons = {
@@ -86,7 +89,7 @@ fun FilterDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp),
-                            horizontalArrangement = Arrangement.End // Align buttons to the end
+                            horizontalArrangement = Arrangement.End
                         ) {
                             androidx.compose.material3.Button(
                                 onClick = onDismissRequest,

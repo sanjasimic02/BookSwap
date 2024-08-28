@@ -16,27 +16,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.bookswap.models.Book
 import com.example.bookswap.repositories.Resource
+import com.example.bookswap.screens.bookScreens.FilterDialog
 import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
 
@@ -46,26 +56,65 @@ fun TableScreen(
     userViewModel: UserAuthViewModel,
     bookViewModel : BookViewModel,
 ) {
-    val context = LocalContext.current
+    //val context = LocalContext.current
     val bookCollection = bookViewModel.books.collectAsState()
     val booksList = remember { mutableStateListOf<Book>() }
 
-    LaunchedEffect(bookCollection) {
+    val isDialogOpen = remember { mutableStateOf(false) }
+    val filters = remember { mutableStateOf(mapOf<String, String>()) }
+    val filtersApplied = remember { mutableStateOf(false) }
+    val filteredBooksList = remember { mutableStateListOf<Book>() }
+
+    val isSearchBarVisible = remember { mutableStateOf(false) }
+    val searchApplied = remember { mutableStateOf(false) }
+    val searchQuery = remember { mutableStateOf("") }
+
+    LaunchedEffect(bookCollection.value, filtersApplied.value, searchQuery.value, searchApplied.value) {
+        Log.d("TableScreen", "LaunchedEffect triggered")
         bookCollection.value.let {
             when (it) {
                 is Resource.Success -> {
                     booksList.clear()
                     booksList.addAll(it.result)
+                    if(filtersApplied.value && searchApplied.value)
+                    {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(
+                            it.result.filter { book ->
+                                (book.title.contains(searchQuery.value, ignoreCase = true)) && ( //umesto da mi title bude u filters
+                                        (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
+                                                (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
+                                                (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true))
+                            }
+                        )
+                    }
+                    else if (filtersApplied.value) {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(
+                            it.result.filter { book ->
+                                //(book.title.contains(searchQuery.value, ignoreCase = true)) || ( //umesto da mi title bude u filters
+                                        (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
+                                        (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
+                                        (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)
+                            }
+                        )
+                    }
+                    else if(searchApplied.value)
+                    {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(
+                            it.result.filter { book ->
+                                book.title.contains(searchQuery.value, ignoreCase = true)
+                            }
+                        )
+                    }
+                    else {
+                        filteredBooksList.clear()
+                        filteredBooksList.addAll(it.result)
+                    }
+                    Log.d("MapScreen", "Filtered books list: ${filteredBooksList.toList()}")
                 }
-                is Resource.Loading -> {
-                    Log.d("MapScreen", "Loading books...")
-                }
-                is Resource.Failure -> {
-                    Log.e("MapScreen", "Failed to load books:")
-                }
-                null -> {
-                    Log.d("MapScreen", "No books available")
-                }
+                is Resource.Failure -> TODO()
                 Resource.Loading -> TODO()
             }
         }
@@ -84,8 +133,7 @@ fun TableScreen(
                 .background(Color(0xFF6D4C41))
                 .padding(8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            Row( modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -98,29 +146,158 @@ fun TableScreen(
                     )
                 )
 
-                Spacer(modifier = Modifier.width(4.dp)) // Razmak između dugmića
-                Button(
-                    onClick = {
-                        navController.navigateUp()
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6D4C41),
-                        contentColor = Color(0xFF3C0B1A)
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                Spacer(modifier = Modifier.weight(1f))
+
+                Row(
+                    //modifier = Modifier.fillMaxWidth(),
+                    //horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "User Profile",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFEDC9AF),
-                        )
+
+                    // Search Icon
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color(0xFFEDC9AF),
+                        modifier = Modifier
+                            .clickable {
+                                isSearchBarVisible.value = true
+                            }
                     )
+
+                    Button(
+                        onClick = {
+                            isDialogOpen.value = true
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6D4C41),
+                            contentColor = Color(0xFF3C0B1A)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Text(
+                            text = "Filters",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFEDC9AF),
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(2.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh",
+                        tint = Color(0xFFEDC9AF),
+                        modifier = Modifier
+                            .clickable {
+                                searchApplied.value = false
+                                filtersApplied.value = false
+                                isSearchBarVisible.value = false
+                            },
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Button(
+                        onClick = {
+                            navController.navigateUp()
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6D4C41),
+                            contentColor = Color(0xFF3C0B1A)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        Text(
+                            text = "User Profile",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFEDC9AF),
+                            )
+                        )
+                    }
                 }
             }
         }
+
+        // Search Bar
+        if (isSearchBarVisible.value) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    value = searchQuery.value,
+                    onValueChange = { newValue ->
+                        searchQuery.value = newValue
+                    },
+                    singleLine = true,
+                    placeholder = {
+                        Text(
+                            text = "Search book by title...",
+                            style = TextStyle(
+                                color = Color.Gray
+                            )
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = "",
+                            tint = Color(0xFF6D4C41)
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                    ),
+                    visualTransformation = VisualTransformation.None,
+                    keyboardOptions = KeyboardOptions.Default
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        searchApplied.value = true
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color(0xFF6D4C41)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text(text = "Apply")
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh",
+                    tint = Color(0xFF6D4C41),
+                    modifier = Modifier
+                        .clickable {
+                            searchApplied.value = false
+                            filtersApplied.value = false
+                            isSearchBarVisible.value = false
+                        },
+                    )
+            }
+        }
+
 
         // Table Header
         Row(
@@ -174,7 +351,7 @@ fun TableScreen(
                 )
             )
         }
-        booksList.forEach { book ->
+        filteredBooksList.forEach { book ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -243,5 +420,16 @@ fun TableScreen(
             }
             Divider(color = Color(0xFF6D4C41), thickness = 0.5.dp)
         }
+
+        FilterDialog(
+            isDialogOpen = isDialogOpen,
+            onDismissRequest = { isDialogOpen.value = false },
+            onApplyFilters = { newFilters ->
+                filters.value = newFilters
+                Log.d("TableScreen", "Filters: ${filters.value}")
+                filtersApplied.value = true
+                Log.d("TableScreen", "Filters Applied: ${filtersApplied.value}")
+            }
+        )
     }
 }

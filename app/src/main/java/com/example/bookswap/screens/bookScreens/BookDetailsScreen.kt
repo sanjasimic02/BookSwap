@@ -91,11 +91,6 @@ fun BookDetailsScreen(
         setButtonEnabled(false) // Disable the button after clicking
     }
 
-
-//    Surface(
-//        modifier = Modifier.fillMaxSize(),
-//        color = Color(0xFFF5F5DC)
-//    ) {
     ModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
@@ -163,8 +158,20 @@ fun BookDetailsScreen(
                 }
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
+            if(book.swapStatus == "unavailable") {
+                Text(
+                    text = "*This book is currently rented!",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        //fontWeight = FontWeight.Bold,
+                        color = Color.Red,
+                    ),
+                    modifier = Modifier.padding(4.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
             Column(
                 modifier = Modifier
                     .padding(16.dp)
