@@ -21,6 +21,7 @@ import com.example.bookswap.screens.ServiceSettings
 import com.example.bookswap.screens.StartScreen
 import com.example.bookswap.screens.TableScreen
 import com.example.bookswap.screens.UserProfileScreen
+import com.example.bookswap.screens.UserProfileScreen1
 import com.example.bookswap.screens.bookScreens.BookDetailsScreen
 import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
@@ -48,9 +49,6 @@ fun Router(
         composable(Routes.startScreen) {
             StartScreen(viewModel = viewModel, navController = navController)
         }
-//        composable(Routes.addBook){
-//            AddBookScreen(viewModel = viewModel, navController = navController, bookViewModel = bookViewModel)
-//        } //treba da prosledim lokaciju!!!!
         composable(
             route = Routes.userScreen + "/{currentUser}",
             arguments = listOf(navArgument("currentUser")
@@ -63,6 +61,16 @@ fun Router(
             val isCorrect = FirebaseAuth.getInstance().currentUser?.uid == currentUser.id
             UserProfileScreen(viewModel = viewModel, navController = navController, bookViewModel = bookViewModel, currentUser = currentUser, isCorrect = isCorrect)
         }
+        composable(Routes.userScreen1 + "/{userId}") {backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserProfileScreen1(
+                userId = userId,
+                navController = navController,
+                bookViewModel = bookViewModel,
+                viewModel = viewModel
+            )
+        }
+
         composable(Routes.mapScreen) {
             MapScreen(viewModel = viewModel, bookViewModel = bookViewModel, navController = navController,
                 cameraPositionState = rememberCameraPositionState(),

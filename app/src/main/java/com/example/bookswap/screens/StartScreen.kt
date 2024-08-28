@@ -44,21 +44,18 @@ fun StartScreen(
 ) {
 
     val currentUser = viewModel.currentUserFlow.collectAsState()
-    //val currentUserState = rememberUpdatedState(currentUser)
 
     LaunchedEffect(currentUser) {
         Log.d("[DEBUG]", "CurrentUser: ${currentUser.value}")
 
-        currentUser?.value?.let { user -> //ovaj upitnik pomogao, ne pipaj ga!!!!
+        currentUser?.value?.let { user ->
             val currUserJSON = Gson().toJson(user)
             val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
             Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
             navController.navigate(Routes.userScreen + "/$encodedUsr") {
                 popUpTo(Routes.startScreen) {
                     inclusive = true
-                } //i ekran označen kao Routes.startScreen
-                // biti uklonjen iz istorije navigacije,
-                //pored svih ekrana koji su prethodili tom ekranu.
+                }
             }
         }
     }

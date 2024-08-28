@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -37,14 +38,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.bookswap.R
 import com.example.bookswap.models.Book
+import com.example.bookswap.navigation.Routes
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.bookScreens.FilterDialog
 import com.example.bookswap.viewModel.BookViewModel
@@ -137,14 +140,32 @@ fun TableScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "bookSwap",
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color(0xFFEDC9AF)
+//                Text(
+//                    text = "bookSwap",
+//                    style = TextStyle(
+//                        fontSize = 18.sp,
+//                        fontStyle = FontStyle.Italic,
+//                        color = Color(0xFFEDC9AF)
+//                    )
+//                )
+                IconButton(
+                    onClick = {
+                        navController.navigate(Routes.mapScreen)
+                    },
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            color = Color(0xFF6D4C41),
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.map),
+                        contentDescription = "Map Icon",
+                        tint = Color(0xFFEDC9AF),
+                        modifier = Modifier.size(50.dp)
                     )
-                )
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 

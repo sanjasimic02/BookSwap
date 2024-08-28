@@ -80,11 +80,9 @@ class LocationService : Service() {
     private fun start(
         bookIsNearby: Boolean = false
     ) {
-        locationClient.getLocationUpdates(1000L) //pokrece da dobija azuriranja lokacije svakih 1000ms tj 3s
+        locationClient.getLocationUpdates(3000L)
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
-                //Log.d("Lokacija", "${location.latitude} ${location.longitude}")
-
                 // Save the last known location in SharedPreferences
                 sharedPreferences.edit()
                     .putString("last_latitude", location.latitude.toString())
@@ -141,7 +139,6 @@ class LocationService : Service() {
 
     private fun createNotification(): android.app.Notification {
         val notificationChannelId = "LOCATION_SERVICE_CHANNEL"
-
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,

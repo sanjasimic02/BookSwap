@@ -30,6 +30,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +52,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.bookswap.R
 import com.example.bookswap.models.Book
-import com.example.bookswap.models.User
 import com.example.bookswap.navigation.Routes
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.viewModel.BookViewModel
@@ -59,18 +59,36 @@ import com.example.bookswap.viewModel.UserAuthViewModel
 
 
 @Composable
-fun UserProfileScreen(
-    currentUser : User,
+fun UserProfileScreen1(
+    userId : String,
     navController: NavController,
     viewModel: UserAuthViewModel,
     bookViewModel : BookViewModel,
-    isCorrect : Boolean
 ) {
 
     val buttonIsEnabled = remember { mutableStateOf(true) }
-    val isLoading = remember { mutableStateOf(false) }
 
-    bookViewModel.getUsersBooks(currentUser.id)
+    val currentUserState = viewModel.userByIdFlow.collectAsState()
+    LaunchedEffect(userId) {
+        viewModel.getUserById(userId)
+    }
+
+    val currentUser = when (val result = currentUserState.value) {
+        is Resource.Success -> result.result
+        is Resource.Failure -> {
+            Log.e("User data:", result.exception.message ?: "Unknown error")
+            null
+        }
+        else -> null
+    }
+
+    if (currentUser != null) {
+        bookViewModel.getUsersBooks(currentUser.id)
+    }
+    else
+    {
+        //greska
+    }
 
     val bookCollection = bookViewModel.userBooks.collectAsState()
     val listBooks = remember {
@@ -126,7 +144,7 @@ fun UserProfileScreen(
                 )
 
                 Button(
-                    onClick = {
+                    onClick = { //dodaj da iskoci mali screen da pita dal si siguran
                         viewModel.logOut()
                         navController.navigate(Routes.loginScreen)
                     },
@@ -166,7 +184,7 @@ fun UserProfileScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = currentUser.profileImg,
+                    model = currentUser?.profileImg,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -182,17 +200,19 @@ fun UserProfileScreen(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text(
-                        text = currentUser.fullName.replace('+', ' '),
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF6D4C41)
+                    currentUser?.fullName?.replace('+', ' ')?.let {
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6D4C41)
+                            )
                         )
-                    )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Phone: ${currentUser.phoneNumber}",
+                        text = "Phone: ${currentUser?.phoneNumber}",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color.Gray
@@ -200,7 +220,7 @@ fun UserProfileScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Email: ${currentUser.email}",
+                        text = "Email: ${currentUser?.email}",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color.Gray
@@ -211,7 +231,7 @@ fun UserProfileScreen(
                         verticalAlignment = Alignment.CenterVertically // Poravnanje teksta i bedža po vertikali
                     ) {
                         Text(
-                            text = "Total points: ${currentUser.totalPoints}",
+                            text = "Total points: ${currentUser?.totalPoints}",
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 color = Color(0xFF6D4C41),
@@ -220,11 +240,11 @@ fun UserProfileScreen(
                             )
                         )
                         var badge_id = R.drawable.bronza2;
-                        if(currentUser.totalPoints == 0)
+                        if(currentUser?.totalPoints == 0)
                         {
                             badge_id = R.drawable.bronza2;
                         }
-                        else if(currentUser.totalPoints in 1..100)
+                        else if(currentUser?.totalPoints in 1..100)
                         {
                             badge_id = R.drawable.srebro;
                         }
@@ -348,7 +368,7 @@ fun UserProfileScreen(
                                             enabled = buttonIsEnabled.value,
                                             modifier = Modifier
                                                 .padding(top = 16.dp),
-                                                //.size(width = 200.dp, height = 50.dp),
+                                            //.size(width = 200.dp, height = 50.dp),
                                             shape = RoundedCornerShape(12.dp),
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = lightenedRed,//Color(0xFF8B0000),
@@ -375,7 +395,7 @@ fun UserProfileScreen(
         }
 
 
-       // Spacer(modifier = Modifier.height(10.dp))
+        //Spacer(modifier = Modifier.height(10.dp))
 
         Box(
             modifier = Modifier

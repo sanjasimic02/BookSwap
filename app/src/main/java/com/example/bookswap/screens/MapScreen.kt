@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +28,7 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TableRows
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
@@ -51,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -60,6 +59,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
 import com.example.bookswap.R
 import com.example.bookswap.models.Book
+import com.example.bookswap.navigation.Routes
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.appComponents.bitmapDescriptorFromVector2
 import com.example.bookswap.screens.bookScreens.AddBookScreen
@@ -89,7 +89,7 @@ fun MapScreen(
     val context = LocalContext.current
     val currentUserId by remember { mutableStateOf(viewModel.getCurrentUserId()) }
 
-    val currUserData = viewModel.currentUserFlow.collectAsState()
+    //val currentUser = viewModel.currentUserFlow.collectAsState()
 
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     val isTrackingServiceEnabled = sharedPreferences.getBoolean("tracking_location", true)
@@ -111,15 +111,11 @@ fun MapScreen(
 
     LaunchedEffect(selectedBook) {
         selectedBook?.let { book ->
-            if(book.swapStatus == "available") {
+            if(book.swapStatus == "available" && book.userId != currentUserId) {
                 cameraPositionState.position = CameraPosition.fromLatLngZoom(
                     LatLng(book.location.latitude, book.location.longitude),
                     17f // Zoom nivo
                 )
-            }
-            else
-            {
-                Toast.makeText(context, "No results!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -285,7 +281,7 @@ fun MapScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp) // Postavljanje fiksne visine za header
+                    .height(50.dp)
                     .background(Color(0xFF6D4C41))
                     .padding(8.dp)
             ) {
@@ -293,24 +289,30 @@ fun MapScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "bookSwap",
-                        style = TextStyle(
-                            fontSize = 18.sp,
-                            fontStyle = FontStyle.Italic,
-                            color = Color(0xFFEDC9AF)
-                        )
+//                    Text(
+//                        text = "bookSwap",
+//                        style = TextStyle(
+//                            fontSize = 18.sp,
+//                            fontStyle = FontStyle.Italic,
+//                            color = Color(0xFFEDC9AF)
+//                        )
+//                    )
+                    Icon(
+                        imageVector = Icons.Default.TableRows,
+                        contentDescription = "Table View",
+                        tint = Color(0xFFEDC9AF),
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate(Routes.tableScreen)
+                            }
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
 
                     Row(
-                        //modifier = Modifier.fillMaxWidth(),
-                        //horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
 
-                        // Search Icon
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
@@ -320,7 +322,6 @@ fun MapScreen(
                                     isSearchBarVisible.value = true
                                 }
                         )
-
                         Button(
                             onClick = {
                                 isDialogOpen.value = true
@@ -360,8 +361,9 @@ fun MapScreen(
 
                         Button(
                             onClick = {
-                                navController.navigateUp()
+                                navController.navigate("${Routes.userScreen1}/${currentUserId}")
                             },
+
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF6D4C41),
@@ -382,7 +384,6 @@ fun MapScreen(
                 }
             }
 
-            // Search Bar
             if (isSearchBarVisible.value) {
                 Row(
                     modifier = Modifier
