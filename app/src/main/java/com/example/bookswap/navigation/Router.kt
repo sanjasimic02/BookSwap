@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.example.bookswap.models.User
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.BookOwnerScreen
+import com.example.bookswap.screens.LeaderboardScreen
 import com.example.bookswap.screens.LoginScreen
 import com.example.bookswap.screens.MapScreen
 import com.example.bookswap.screens.RegistrationScreen
@@ -81,6 +82,9 @@ fun Router(
         }
         composable(Routes.serviceSettings){
             ServiceSettings(navController = navController)
+        }
+        composable(Routes.leaderboardScreen){
+            LeaderboardScreen(navController = navController, userViewModel = viewModel)
         }
         composable(Routes.bookOwnerScreen + "/{userId}") { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: ""

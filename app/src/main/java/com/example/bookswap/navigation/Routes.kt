@@ -10,4 +10,5 @@ object Routes {
     val serviceSettings = "serviceSettings"
     val bookOwnerScreen = "bookOwnerScreen"
     val tableScreen = "tableScreen"
+    val leaderboardScreen = "leaderboardScreen"
 }

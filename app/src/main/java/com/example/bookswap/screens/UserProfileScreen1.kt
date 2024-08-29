@@ -259,6 +259,35 @@ fun UserProfileScreen1(
                             contentDescription = "Badge",
                             modifier = Modifier.size(24.dp) // Veličina bedža
                         )
+
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Button(
+                        onClick = {
+                            navController.navigate(Routes.leaderboardScreen)
+                        },
+                        enabled = buttonIsEnabled.value,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(0.dp)
+                        ,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color(0xFF6D4C41)
+                        )
+                    ) {
+                        Text(
+                            text = "See ranking list",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6D4C41),
+                                fontStyle = FontStyle.Italic
+                            )
+                        )
                     }
                 }
             }

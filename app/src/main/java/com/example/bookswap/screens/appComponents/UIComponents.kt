@@ -65,8 +65,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.bookswap.R
+import com.example.bookswap.models.User
+import com.example.bookswap.navigation.Routes
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 
@@ -532,5 +535,53 @@ fun bitmapDescriptorFromVector2(context: Context, vectorResId: Int): BitmapDescr
         val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
         draw(Canvas(bitmap))
         BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+}
+
+@Composable
+fun UserRankingCard(
+    user: User,
+    rank: Int,
+    navController: NavController,
+    userId : String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+            .clip(RoundedCornerShape(12.dp)) // Rounded corners
+            .background(Color(0xFF6D4C41))
+            .clickable {
+                navController.navigate(Routes.bookOwnerScreen + "/${userId}")
+            },
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .background(Color(0xFF6D4C41)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$rank.",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.width(32.dp),
+                color = Color(0xFFEDC9AF)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = user.fullName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFFEDC9AF)
+                )
+                Text(
+                    text = "${user.totalPoints} points",
+                    fontSize = 16.sp,
+                    color = Color(0xFFEDC9AF)
+                )
+            }
+        }
     }
 }
