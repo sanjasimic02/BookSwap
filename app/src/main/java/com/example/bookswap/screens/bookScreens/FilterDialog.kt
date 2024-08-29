@@ -18,6 +18,7 @@ import androidx.compose.material.Text
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -31,16 +32,19 @@ import androidx.compose.ui.unit.sp
 import com.example.bookswap.screens.appComponents.CustomDropdownMenu
 import com.example.bookswap.screens.appComponents.FilterLanguage
 import com.example.bookswap.screens.appComponents.FilterOptionRow
+import com.example.bookswap.screens.appComponents.RadiusSlider
 
 @Composable
 fun FilterDialog(
     isDialogOpen: MutableState<Boolean>,
     onDismissRequest: () -> Unit,
-    onApplyFilters: (Map<String, String>) -> Unit
+    onApplyFilters: (Map<String, String>) -> Unit,
+    isMap : Boolean
 ) {
     if (isDialogOpen.value) {
         val filterOptions = remember { mutableStateOf(mapOf<String, String>()) }
         val genres = listOf("Romance", "Drama", "Popularna psihologija", "Fiction", "Non-fiction", "Sci-Fi", "Fantasy", "Mystery")
+        val radiusValue = remember { mutableFloatStateOf(filterOptions.value["radius"]?.toFloat() ?: 10f) }
 
         Box(
             modifier = Modifier
@@ -70,18 +74,24 @@ fun FilterDialog(
                     },
                     text = {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Spacer(modifier = Modifier.height(20.dp)) // Normalan razmak između redova
-
-//                            FilterOptionRow(label = "Title", filterOptions = filterOptions, key = "title")
-//                            Spacer(modifier = Modifier.height(16.dp)) // Normalan razmak između redova
-
-                            FilterOptionRow(label = "Author:", filterOptions = filterOptions, key = "author")
+                            Spacer(modifier = Modifier.height(20.dp))
+                            FilterOptionRow(
+                                label = "Author:",
+                                filterOptions = filterOptions,
+                                key = "author"
+                            )
                             Spacer(modifier = Modifier.height(16.dp))
-
-                            CustomDropdownMenu(filterOptions = filterOptions, key = "genre", options = genres)
+                            CustomDropdownMenu(
+                                filterOptions = filterOptions,
+                                key = "genre",
+                                options = genres
+                            )
                             Spacer(modifier = Modifier.height(16.dp))
-
                             FilterLanguage(filterOptions = filterOptions, key = "language")
+                            Spacer(modifier = Modifier.height(16.dp))
+                            if(isMap) {
+                                RadiusSlider(filterOptions = filterOptions, key = "radius")
+                            }
                         }
                     },
                     buttons = {
@@ -135,3 +145,4 @@ fun FilterDialog(
         }
     }
 }
+

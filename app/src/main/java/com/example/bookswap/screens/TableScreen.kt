@@ -450,7 +450,9 @@ fun TableScreen(
                 Log.d("TableScreen", "Filters: ${filters.value}")
                 filtersApplied.value = true
                 Log.d("TableScreen", "Filters Applied: ${filtersApplied.value}")
-            }
+            },
+            false
         )
     }
 }
+

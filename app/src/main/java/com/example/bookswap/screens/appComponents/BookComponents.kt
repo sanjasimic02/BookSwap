@@ -31,11 +31,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -424,3 +427,50 @@ fun CustomDropdownMenu(
         }
     }
 }
+
+@Composable
+fun RadiusSlider(
+    filterOptions: MutableState<Map<String, String>>,
+    key: String,
+) {
+    //val radiusValue = remember { mutableStateOf(filterOptions.value[key] ?: 0f) }
+    val radiusValue = remember { mutableFloatStateOf(filterOptions.value[key]?.toFloat() ?: 10f) }
+
+
+    Box(
+        modifier = Modifier
+            .border(1.dp, Color(0xFF6D4C41))
+            .background(Color.Transparent)
+            .padding(16.dp)
+    ) {
+        Column {
+            Text(
+                text = "Select Radius:",
+                color = Color(0xFF6D4C41),
+                fontSize = 18.sp,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Slider(
+                value = radiusValue.floatValue,
+                onValueChange = {
+                    radiusValue.floatValue = it
+                    filterOptions.value = filterOptions.value.toMutableMap().apply { put(key, radiusValue.floatValue.toString()) }
+                },
+                valueRange = 1f..100f,
+                steps = 99, //da bi islo za po 1
+                colors = SliderDefaults.colors(
+                    thumbColor = Color(0xFF8B4513),
+                    activeTrackColor = Color(0xFF6D4C41),
+                    inactiveTrackColor = Color(0xFFD2B48C)
+                )
+            )
+            Text(
+                text = "Radius: ${radiusValue.floatValue.toInt()} km",
+                color = Color(0xFF6D4C41),
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+

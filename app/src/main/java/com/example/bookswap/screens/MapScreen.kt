@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
@@ -69,11 +70,17 @@ import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.GeoPoint
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -101,24 +108,64 @@ fun MapScreen(
     val filters = remember { mutableStateOf(mapOf<String, String>()) }
     val filtersApplied = remember { mutableStateOf(false) }
     val filteredBooksList = remember { mutableStateListOf<Book>() }
+    val radius = filters.value["radius"]?.toFloatOrNull() ?: 10f
 
     val isSearchBarVisible = remember { mutableStateOf(false) }
     val searchApplied = remember { mutableStateOf(false) }
     val searchQuery = remember { mutableStateOf("") }
 
-    // Ako postoji filtrirana knjiga, postavljam poziciju kamere na nju
-    val selectedBook = filteredBooksList.firstOrNull()
+    val showNoResultsDialog = remember { mutableStateOf(false) }
 
-    LaunchedEffect(selectedBook) {
-        selectedBook?.let { book ->
-            if(book.swapStatus == "available" && book.userId != currentUserId) {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                    LatLng(book.location.latitude, book.location.longitude),
-                    17f // Zoom nivo
-                )
+
+    //znaci samo u slucaju da postoji samo jedna takva pronadjena, fokusiraj tamo
+    val selectedBook = filteredBooksList.firstOrNull()
+    LaunchedEffect(filteredBooksList.size) {
+        if(filteredBooksList.size == 1 ) {
+            selectedBook?.let { book ->
+                if (book.swapStatus == "available" && book.userId != currentUserId) {
+                    cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                        LatLng(book.location.latitude, book.location.longitude),
+                        17f // Zoom nivo
+                    )
+                }
             }
         }
+        else if((filtersApplied.value || searchApplied.value) && filteredBooksList.size == 0)
+        {
+            showNoResultsDialog.value = true
+        }
     }
+
+    //ne obuhvata podrucje kako hocu
+//    LaunchedEffect(radius) {
+//        // Kada je primenjen radius, postavi kameru da prikazuje celo područje
+//        if(filteredBooksList.size > 1 ) {
+//            val centerLatLng = myLocation.value
+//            val radiusInMeters = radius * 1000
+//            val boundsBuilder = LatLngBounds.Builder()
+//            boundsBuilder.include(centerLatLng!!)
+//            // Izračunajte ivice granica na osnovu radiusa
+//            val northEast = LatLng(
+//                centerLatLng.latitude + (radiusInMeters / 111320), // 111320 metara po stepenu latituda
+//                centerLatLng.longitude + (radiusInMeters / (111320 * Math.cos(Math.toRadians(centerLatLng.latitude))))
+//            )
+//
+//            val southWest = LatLng(
+//                centerLatLng.latitude - (radiusInMeters / 111320),
+//                centerLatLng.longitude - (radiusInMeters / (111320 * Math.cos(Math.toRadians(centerLatLng.latitude))))
+//            )
+//
+//            boundsBuilder.include(northEast)
+//            boundsBuilder.include(southWest)
+//
+//            // Kreirajte LatLngBounds objekat i postavite kameru
+//            val bounds = boundsBuilder.build()
+//            cameraPositionState.position = CameraPosition.fromLatLngZoom(
+//                bounds.center,
+//                17f // Prilagodite zoom nivo da odgovara radiusu
+//            )
+//        }
+//    }
 
     val bookCollection = bookViewModel.books.collectAsState()
     val booksList = remember { mutableListOf<Book>() }
@@ -131,36 +178,28 @@ fun MapScreen(
     val showSheet = remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
+    fun calculateDistance(start: MutableState<LatLng?>, end: GeoPoint): Float {
+        val startLatLng = start.value ?: return Float.MAX_VALUE
 
-//    LaunchedEffect(bookCollection.value, filtersApplied.value) {
-//        bookCollection.value.let {
-//            when (it) {
-//                is Resource.Success -> {
-//                    booksList.clear()
-//                    booksList.addAll(it.result)
-//                    if (filtersApplied.value) {
-//                        filteredBooksList.clear()
-//                        filteredBooksList.addAll(
-//                            it.result.filter { book ->
-//                                //(filters.value["title"]?.let { book.title.contains(it, ignoreCase = true) } ?: true) &&
-//
-//                                        (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
-//                                        (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
-//                                        (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)
-//                            }
-//                        )
-//                    } else {
-//                        filteredBooksList.clear()
-//                        filteredBooksList.addAll(it.result)
-//                    }
-//                    Log.d("MapScreen", "Filtered books list: ${filteredBooksList.toList()}")
-//                }
-//                is Resource.Failure -> TODO()
-//                Resource.Loading -> TODO()
-//            }
-//        }
-//    }
-    LaunchedEffect(bookCollection.value, filtersApplied.value, searchQuery.value, searchApplied.value) {
+        val endLatLng = LatLng(end.latitude, end.longitude)
+        val earthRadius = 6371 // Earth radius in kilometers
+
+        val lat1 = Math.toRadians(startLatLng.latitude)
+        val lon1 = Math.toRadians(startLatLng.longitude)
+        val lat2 = Math.toRadians(endLatLng.latitude)
+        val lon2 = Math.toRadians(endLatLng.longitude)
+
+        val dLat = lat2 - lat1
+        val dLon = lon2 - lon1
+
+        val a = sin(dLat / 2).pow(2) +
+                cos(lat1) * cos(lat2) * sin(dLon / 2).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        return (earthRadius * c).toFloat()
+    }
+
+    LaunchedEffect(bookCollection.value, filtersApplied.value, searchQuery.value, searchApplied.value, filters.value) {
         Log.d("TableScreen", "LaunchedEffect triggered")
         bookCollection.value.let {
             when (it) {
@@ -172,10 +211,12 @@ fun MapScreen(
                         filteredBooksList.clear()
                         filteredBooksList.addAll(
                             it.result.filter { book ->
-                                (book.title.contains(searchQuery.value, ignoreCase = true)) && ( //umesto da mi title bude u filters
-                                        (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
-                                                (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
-                                                (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true))
+                                book.userId != currentUserId &&
+                                book.swapStatus == "available" && (book.title.contains(searchQuery.value, ignoreCase = true)) &&
+                                        ((filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
+                                        (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
+                                                (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)) &&
+                                        (calculateDistance(myLocation, book.location) <= radius) // Filter by radius
                             }
                         )
 
@@ -184,10 +225,12 @@ fun MapScreen(
                         filteredBooksList.clear()
                         filteredBooksList.addAll(
                             it.result.filter { book ->
+                                book.userId != currentUserId && book.swapStatus == "available" &&
                                 //(book.title.contains(searchQuery.value, ignoreCase = true)) || ( //umesto da mi title bude u filters
                                 (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
                                         (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
-                                        (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)
+                                        (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true) &&
+                                        (calculateDistance(myLocation, book.location) <= radius)// Filter by radius
                             }
                         )
 
@@ -197,7 +240,9 @@ fun MapScreen(
                         filteredBooksList.clear()
                         filteredBooksList.addAll(
                             it.result.filter { book ->
-                                book.title.contains(searchQuery.value, ignoreCase = true)
+                                book.userId != currentUserId &&
+                                        book.swapStatus == "available" &&
+                                        book.title.contains(searchQuery.value, ignoreCase = true)
                             }
                         )
 //                        if(filteredBooksList.size == 0)
@@ -210,6 +255,7 @@ fun MapScreen(
                         filteredBooksList.addAll(it.result)
                     }
                     Log.d("MapScreen", "Filtered books list: ${filteredBooksList.toList()}")
+                    Log.d("MapScreen", "Number of books: ${filteredBooksList.size}")
                 }
                 is Resource.Failure -> TODO()
                 Resource.Loading -> TODO()
@@ -510,11 +556,39 @@ fun MapScreen(
                     Log.d("MapScreen", "Filters: ${filters.value}")
                     filtersApplied.value = true
                     Log.d("MapScreen", "Filters Applied: ${filtersApplied.value}")
-                }
+                },
+                true
             )
+
+            // Dijalog za prikaz poruke
+            if (showNoResultsDialog.value) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showNoResultsDialog.value = false
+                    },
+                    title = {
+                        Text(text = "No results!",
+                            color = Color(0xFF6D4C41))
+                    },
+                    text = {
+                        Text(text = "There are no books that match your search or filter criteria.",
+                            color = Color(0xFF6D4C41))
+                    },
+                    confirmButton = {
+                        Button(onClick = { showNoResultsDialog.value = false },
+                            colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF6D4C41),
+                                    contentColor = Color(0xFFEDC9AF)
+                        )) {
+                            Text("OK", color = Color(0xFFEDC9AF))
+                        }
+                    }
+                )
+            }
         }
         }
     }
+
 
 
 
