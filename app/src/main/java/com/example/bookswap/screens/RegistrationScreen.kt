@@ -157,127 +157,91 @@ fun RegistrationScreen(
                 CustomLabel(label = "Password")
 
                 Spacer(modifier = Modifier.height(2.dp))
-            Password(
-                inputValue = password,
-                hint = "fde1234KL!",
-                isError = isPasswordError,
-                errorText = passwordErrorText
-            )
+                Password(
+                    inputValue = password,
+                    hint = "fde1234KL!",
+                    isError = isPasswordError,
+                    errorText = passwordErrorText
+                )
 
-            Spacer(modifier = Modifier.height(2.dp))
-                RegisterButton(
-                onClick = {
-                    isIProfileImgError.value = false
-                    isEmailError.value = false
-                    isPasswordError.value = false
-                    isFullNameError.value = false
-                    isPhoneNumberError.value = false
-                    isError.value = false
-                    isLoading.value = true
+                Spacer(modifier = Modifier.height(2.dp))
+                    RegisterButton(
+                    onClick = {
+                        isIProfileImgError.value = false
+                        isEmailError.value = false
+                        isPasswordError.value = false
+                        isFullNameError.value = false
+                        isPhoneNumberError.value = false
+                        isError.value = false
+                        isLoading.value = true
 
-                    if (profileImg.value == Uri.EMPTY) {
-                        isIProfileImgError.value = true
-                        isLoading.value = false
-                    } else if (fullName.value.isEmpty()) {
-                        isFullNameError.value = true
-                        isLoading.value = false
-                    } else if (email.value.isEmpty()) {
-                        isEmailError.value = true
-                        isLoading.value = false
-                    } else if (phoneNumber.value.isEmpty()) {
-                        isPhoneNumberError.value = true
-                        isLoading.value = false
-                    } else if (password.value.isEmpty()) {
-                        isPasswordError.value = true
-                        isLoading.value = false
-                    } else {
-                        viewModel?.register(
-                            profileImg = profileImg.value,
-                            fullName = fullName.value,
-                            email = email.value,
-                            phoneNumber = phoneNumber.value,
-                            password = password.value
-                        )
-                    }
-                },
-                buttonText = "Sign Up",
-                isEnabled = buttonEnabled,
-                isLoading = isLoading,
-            )
-
-           Spacer(modifier = Modifier.height(17.dp))
-            Alternative(
-                text = "Already have an account? ",
-                link = "Sign In",
-                onClick = {
-                    navController?.navigate(Routes.loginScreen)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-//            CopyrightText(
-//                year = 2024,
-//                owner = "18859",
-//                textColor = Color.White,
-//                modifier = Modifier
-//                    .align(Alignment.End)
-//                    .align(Alignment.CenterHorizontally)
-//            )
-//        }
-
-                signUpFlow?.value?.let {
-                    when (it) {
-                        is Resource.Failure -> {
+                        if (profileImg.value == Uri.EMPTY) {
+                            isIProfileImgError.value = true
                             isLoading.value = false
-                            Log.e("[ERROR]", it.exception.message.toString())
-
-//                    when (it.exception.message.toString()) {
-//                        ExceptionLogs.emptyFields -> {
-//                            isEmailError.value = true
-//                            isPasswordError.value = true
-//                        }
-//
-//                        ExceptionLogs.badlyFormattedEmail -> {
-//                            isEmailError.value = true
-//                            emailErrorText.value = "The email address is improperly formatted."
-//                        }
-//
-//                        ExceptionLogs.invalidCredentials -> {
-//                            isError.value = true
-//                            errorText.value = "The provided authentication credentials are incorrect or expired."
-//                        }
-//
-//                        ExceptionLogs.passwordTooShort -> {
-//                            isPasswordError.value = true
-//                            passwordErrorText.value = "Password must be at least 6 characters long."
-//                        }
-//
-//                        ExceptionLogs.emailAlreadyInUse -> {
-//                            isError.value = true
-//                            errorText.value = "This email address is already associated with another account."
-//                        }
-//
-//                        else -> { }
-//                    }
+                        } else if (fullName.value.isEmpty()) {
+                            isFullNameError.value = true
+                            isLoading.value = false
+                        } else if (email.value.isEmpty()) {
+                            isEmailError.value = true
+                            isLoading.value = false
+                        } else if (phoneNumber.value.isEmpty()) {
+                            isPhoneNumberError.value = true
+                            isLoading.value = false
+                        } else if (password.value.isEmpty()) {
+                            isPasswordError.value = true
+                            isLoading.value = false
+                        } else {
+                            viewModel?.register(
+                                profileImg = profileImg.value,
+                                fullName = fullName.value,
+                                email = email.value,
+                                phoneNumber = phoneNumber.value,
+                                password = password.value
+                            )
                         }
+                    },
+                    buttonText = "Sign Up",
+                    isEnabled = buttonEnabled,
+                    isLoading = isLoading,
+                )
 
-                        is Resource.Success -> {
-                            isLoading.value = false
-                            LaunchedEffect(Unit) {
-                                navController?.navigate(Routes.userScreen) {
-                                    popUpTo(Routes.userScreen) {
-                                        inclusive = true
+               Spacer(modifier = Modifier.height(17.dp))
+                Alternative(
+                    text = "Already have an account? ",
+                    link = "Sign In",
+                    onClick = {
+                        navController?.navigate(Routes.loginScreen)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                    signUpFlow?.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                isLoading.value = false
+                                Log.e("[ERROR]", it.exception.message.toString())
+                            }
+
+                            is Resource.Success -> {
+                                isLoading.value = false
+                                LaunchedEffect(Unit) {
+                                    navController?.navigate(Routes.loginScreen) {
+                                        popUpTo(Routes.startScreen) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             }
+
+                            is Resource.Loading -> {}
+
+                            null -> Log.d("SignUpScreen", "SignUp flow doesn't exist!")
                         }
-
-                        is Resource.Loading -> {}
-
-                        null -> Log.d("SignUpScreen", "SignUp flow doesn't exist!")
                     }
+
+
                 }
-            }
         }
     }
 }

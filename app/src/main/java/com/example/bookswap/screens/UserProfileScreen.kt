@@ -240,7 +240,7 @@ fun UserProfileScreen(
                             modifier = Modifier.size(24.dp) // Veličina bedža
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     Button(
                         onClick = {
@@ -250,7 +250,7 @@ fun UserProfileScreen(
                         modifier = Modifier
                             .fillMaxHeight()
                             .padding(0.dp)
-                        ,
+                            .border(1.dp, Color(0xFF6D4C41), RoundedCornerShape(12.dp)),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Transparent,

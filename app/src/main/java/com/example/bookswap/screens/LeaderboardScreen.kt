@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TableRows
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -40,12 +41,14 @@ import com.example.bookswap.models.User
 import com.example.bookswap.navigation.Routes
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.appComponents.UserRankingCard
+import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
 
 @Composable
 fun LeaderboardScreen(
     userViewModel: UserAuthViewModel,
-    navController: NavController
+    navController: NavController,
+    bookViewModel: BookViewModel
 ) {
     userViewModel.getAllUsersData()
     val allUsersCollection = userViewModel.allUsers.collectAsState()
@@ -73,16 +76,19 @@ fun LeaderboardScreen(
         .background(Color(0xFFFAF3E0))
     ) {
         if (users.isEmpty()) {
-            //LOADING umesto ovog!!!
-            Text(
-                text = "No users found",
-                modifier = Modifier.align(Alignment.Center),
-                style = TextStyle(
-                    color = Color.Gray,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
+//            //LOADING umesto ovog!!!
+//            Text(
+//                text = "No users found",
+//                modifier = Modifier.align(Alignment.Center),
+//                style = TextStyle(
+//                    color = Color.Gray,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold
+//                )
+//            )
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         } else {
             Column(
                 modifier = Modifier
@@ -170,6 +176,12 @@ fun LeaderboardScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 users.forEachIndexed { index, user ->
+//                    bookViewModel.getUsersBooks(user.id)
+//                    val booksResource = bookViewModel.userBooks.collectAsState().value
+//                    val numberOfBooks = when (booksResource) {
+//                        is Resource.Success -> booksResource.result.size
+//                        else -> 0
+//                    }
                     UserRankingCard(user = user, rank = index + 1, navController, user.id)
                 }
             }

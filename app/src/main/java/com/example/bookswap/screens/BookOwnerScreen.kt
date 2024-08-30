@@ -24,8 +24,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.TableRows
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -119,49 +123,63 @@ fun BookOwnerScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(50.dp)
                 .background(Color(0xFF6D4C41))
-                .padding(1.dp)
+                .padding(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 Text(
-                    text = "bookSwap member",
+                    text = "bookSwap",
                     style = TextStyle(
                         fontSize = 18.sp,
                         fontStyle = FontStyle.Italic,
                         color = Color(0xFFEDC9AF)
                     )
                 )
-
-                androidx.compose.material3.Button(
-                    onClick = {
-                        navController.navigateUp()
-                    },
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
                     modifier = Modifier
-                        .fillMaxHeight(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6D4C41),
-                        contentColor = Color(0xFF3C0B1A)
-                    )
+                        .padding(2.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.Text(
-                        text = "Back",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFEDC9AF),
-                        )
+                    Icon(
+                        imageVector = Icons.Default.TableRows,
+                        contentDescription = "Table View",
+                        tint = Color(0xFFEDC9AF),
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate(Routes.tableScreen)
+                            }
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = {
+                            navController.navigate(Routes.mapScreen)
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(
+                                color = Color(0xFF6D4C41),
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.map),
+                            contentDescription = "Map Icon",
+                            tint = Color(0xFFEDC9AF),
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+                    //Spacer(modifier = Modifier.width(2.dp))
                 }
-
             }
         }
-
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // Profile info
@@ -258,6 +276,33 @@ fun BookOwnerScreen(
                                 modifier = Modifier.size(24.dp) // Veličina bedža
                             )
                         }
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Button(
+                            onClick = {
+                                navController.navigate(Routes.leaderboardScreen)
+                            },
+                            enabled = buttonIsEnabled.value,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(0.dp)
+                                .border(1.dp, Color(0xFF6D4C41), RoundedCornerShape(12.dp)),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = Color(0xFF6D4C41)
+                            )
+                        ) {
+                            Text(
+                                text = "See ranking list",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF6D4C41),
+                                    fontStyle = FontStyle.Italic
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -294,7 +339,7 @@ fun BookOwnerScreen(
                         .padding(horizontal = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Prikaz liste knjiga
                 if (listBooks.isEmpty()) {
@@ -355,47 +400,5 @@ fun BookOwnerScreen(
                 }
             }
         }
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = {
-                        navController.navigate(Routes.mapScreen)
-                    },
-                    enabled = buttonIsEnabled.value,
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .size(width = 200.dp, height = 50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6D4C41),
-                        contentColor = Color(0xFF3C0B1A)
-                    )
-                ) {
-                    Text(
-                        text = "View map",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFEDC9AF)
-                        )
-                    )
-                }
-            }
-        }
-
     }
 }

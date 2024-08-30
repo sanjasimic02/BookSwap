@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +60,10 @@ fun TableScreen(
     userViewModel: UserAuthViewModel,
     bookViewModel : BookViewModel,
 ) {
+    val currentUserId by remember { mutableStateOf(userViewModel.getCurrentUserId()) } //kad ima by moze da se direktno koristi kao string, umesto .value
+    //currentUserId:String
+
+
     //val context = LocalContext.current
     val bookCollection = bookViewModel.books.collectAsState()
     val booksList = remember { mutableStateListOf<Book>() }
@@ -225,7 +230,7 @@ fun TableScreen(
 
                     Button(
                         onClick = {
-                            navController.navigateUp()
+                            navController.navigate(Routes.userScreen1 + "/${currentUserId}")
                         },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(

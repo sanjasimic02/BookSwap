@@ -84,7 +84,7 @@ fun Router(
             ServiceSettings(navController = navController)
         }
         composable(Routes.leaderboardScreen){
-            LeaderboardScreen(navController = navController, userViewModel = viewModel)
+            LeaderboardScreen(navController = navController, userViewModel = viewModel, bookViewModel = bookViewModel)
         }
         composable(Routes.bookOwnerScreen + "/{userId}") { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: ""

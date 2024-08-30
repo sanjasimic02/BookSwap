@@ -54,7 +54,7 @@ class AuthRepository : IAuthRepository
 
                 val user = User (
                     email = email,
-                    password = password,
+                    //password = password,
                     fullName = fullName,
                     phoneNumber = phoneNumber,
                     profileImg = profilePictureUrl

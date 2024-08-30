@@ -35,6 +35,7 @@ import com.example.bookswap.screens.appComponents.CustomInput
 import com.example.bookswap.screens.appComponents.CustomLabel
 import com.example.bookswap.screens.appComponents.Heading
 import com.example.bookswap.screens.appComponents.Heading2
+import com.example.bookswap.screens.appComponents.Password
 import com.example.bookswap.viewModel.UserAuthViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
@@ -99,14 +100,12 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 CustomLabel(label = "Password")
-                CustomInput(
-                    hint = "********",
-                    value = password,
-                    isEmail = false,
+                Password(
+                    inputValue = password,
+                    hint = "fde1234KL!",
                     isError = isPasswordError,
                     errorText = passwordErrorText
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
@@ -159,57 +158,10 @@ fun LoginScreen(
 
             }
 
-//            signInFlow.value.let {result ->
-//                when (result) {
-//                    is Resource.Failure -> {
-//                        isLoading.value = false
-//                        Log.d("[ERROR]", result.exception.message.toString())
-//                    }
-//                    is Resource.Success -> {
-//                        Log.d("[DEBUG]", "Login successful, fetching user data.")
-//                        LaunchedEffect(Unit) {
-//                            viewModel.getUserData() //preuzmi podatke o korisniku
-//                            val userResource = currUserData.value
-//                            if (userResource is Resource.Success) {
-//                                Log.d("[DEBUG]", "User data fetched successfully.")
-//                                currentUser.value = userResource.result
-//                            } else {
-//                                Log.d("[DEBUG]", "Failed to fetch user data.")
-//                                currentUser.value = null
-//                            }
-//
-//                            isLoading.value = false
-//                            //sad da navigiram
-//                            currentUser.value?.let { user ->
-//                                val currUserJSON = Gson().toJson(user)
-//                                val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
-//                                Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
-//                                navController.navigate(Routes.userScreen + "/$encodedUsr") {
-//                                    popUpTo(Routes.loginScreen) {
-//                                        inclusive = true
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    is Resource.Loading -> {
-//                        isLoading.value = true
-//                        Log.d("[DEBUG]", "Loading...")
-//                    }
-//
-//                    null -> {
-//                        Log.d("[DEBUG]", "signInFlow is null")
-//                    }
-//
-//                }
-//            }
-
             LaunchedEffect(signInFlow.value) {
-                when (val result = signInFlow.value) {
+                when (signInFlow.value) {
                     is Resource.Failure -> {
                         isLoading.value = false
-                        //Log.d("[ERROR]", result.exception.message.toString())
                     }
                     is Resource.Success -> {
                         Log.d("[DEBUG]", "Login successful, fetching user data.")
@@ -229,7 +181,6 @@ fun LoginScreen(
                 when (val userResource = currUserData.value) {
                     is Resource.Success -> {
                         Log.d("[DEBUG]", "User data fetched successfully.")
-                        //currentUser.value = userResource.result
                         val user = userResource.result
                         isLoading.value = false
 

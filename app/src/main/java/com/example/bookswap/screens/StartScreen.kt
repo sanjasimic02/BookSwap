@@ -19,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,9 +36,6 @@ import androidx.navigation.NavController
 import com.example.bookswap.navigation.Routes
 import com.example.bookswap.screens.appComponents.StartImage
 import com.example.bookswap.viewModel.UserAuthViewModel
-import com.google.gson.Gson
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
 fun StartScreen(
@@ -44,20 +44,26 @@ fun StartScreen(
 ) {
 
     val currentUser = viewModel.currentUserFlow.collectAsState()
+    val currentUserId by remember { mutableStateOf(viewModel.getCurrentUserId()) }
+
 
     LaunchedEffect(currentUser) {
         Log.d("[DEBUG]", "CurrentUser: ${currentUser.value}")
-
-        currentUser?.value?.let { user ->
-            val currUserJSON = Gson().toJson(user)
-            val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
-            Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
-            navController.navigate(Routes.userScreen + "/$encodedUsr") {
-                popUpTo(Routes.startScreen) {
-                    inclusive = true
-                }
-            }
+        if(currentUser.value != null)
+        {
+            navController.navigate(Routes.userScreen1 + "/$currentUserId")
         }
+
+//        currentUser?.value?.let { user ->
+//            val currUserJSON = Gson().toJson(user)
+//            val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
+//            Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
+//            navController.navigate(Routes.userScreen + "/$encodedUsr") {
+//                popUpTo(Routes.startScreen) {
+//                    inclusive = true
+//                }
+//            }
+//        }
     }
 
     StartImage {

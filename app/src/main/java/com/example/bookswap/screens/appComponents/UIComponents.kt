@@ -543,11 +543,12 @@ fun UserRankingCard(
     user: User,
     rank: Int,
     navController: NavController,
-    userId : String) {
+    userId: String) {
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp)
+            .padding(8.dp)
             .clip(RoundedCornerShape(12.dp)) // Rounded corners
             .background(Color(0xFF6D4C41))
             .clickable {
@@ -563,23 +564,49 @@ fun UserRankingCard(
         ) {
             Text(
                 text = "$rank.",
-                fontSize = 20.sp,
+                fontSize =  if (rank <= 3) 24.sp else 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(32.dp),
-                color = Color(0xFFEDC9AF)
+                color = Color(0xFFEDC9AF),
+                fontStyle = if (rank <= 3) FontStyle.Italic else FontStyle.Normal
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
                     text = user.fullName,
-                    fontSize = 18.sp,
+                    fontSize = if (rank <= 3) 22.sp else 18.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFFEDC9AF)
+                    color = Color(0xFFEDC9AF),
+                    fontStyle = if (rank <= 3) FontStyle.Italic else FontStyle.Normal
                 )
                 Text(
-                    text = "${user.totalPoints} points",
-                    fontSize = 16.sp,
+                    text = "Total points: ${user.totalPoints}",
+                    fontSize = 14.sp,
                     color = Color(0xFFEDC9AF)
+                )
+//                Text(
+//                    text = "Books in library: $numberOfBooks",
+//                    fontSize = 14.sp,
+//                    color = Color(0xFFEDC9AF)
+//                )
+//                Text(
+//                    text = "Number of comments: ${user.totalPoints}",
+//                    fontSize = 14.sp,
+//                    color = Color(0xFFEDC9AF)
+//                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            if(rank <= 3) {
+                var badge_id = R.drawable.bronza2;
+                if (rank == 1) {
+                    badge_id = R.drawable.zlato;
+                } else if (rank == 2) {
+                    badge_id = R.drawable.srebro;
+                }
+                Image(
+                    painter = painterResource(id = badge_id), // Zameniti sa odgovarajućim ID-jem resursa za bedž
+                    contentDescription = "Badge",
+                    modifier = Modifier.size(50.dp) // Veličina bedža
                 )
             }
         }
