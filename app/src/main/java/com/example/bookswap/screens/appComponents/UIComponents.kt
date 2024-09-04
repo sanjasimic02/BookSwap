@@ -182,11 +182,22 @@ fun CustomInput(
         TextField(
             value = value.value,
             onValueChange = { newValue ->
-                value.value = newValue
-                if (isError.value) {
-                    isError.value = false
+                // Provera ako je polje za unos broja i uneti tekst je validan broj
+                if (isNumber) {
+                    if (newValue.all { it.isDigit() }) {
+                        value.value = newValue
+                        if (isError.value) {
+                            isError.value = false
+                        }
+                        onValueChange(newValue)
+                    }
+                } else {
+                    value.value = newValue
+                    if (isError.value) {
+                        isError.value = false
+                    }
+                    onValueChange(newValue)
                 }
-                onValueChange(newValue)
             },
             singleLine = true,
             placeholder = {
@@ -206,7 +217,7 @@ fun CustomInput(
             keyboardOptions = KeyboardOptions.Default,
             textStyle = TextStyle(
                 fontSize = 18.sp,
-                color = Color(0xFF6D4C41)
+                color = if (value.value.isNotEmpty()) Color(0xFFF5E6CC) else Color(0xFF6D4C41)
             )
         )
 
@@ -289,7 +300,7 @@ fun UploadProfileImg(
                             )
                         }
                 )
-                AsyncImage(
+                AsyncImage( //prikazuje izabranu sliku
                     model = uri,
                     contentDescription = null,
                     modifier = Modifier
@@ -543,13 +554,14 @@ fun UserRankingCard(
     user: User,
     rank: Int,
     navController: NavController,
-    userId: String) {
+    userId: String
+) {
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clip(RoundedCornerShape(12.dp)) // Rounded corners
+            .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFF6D4C41))
             .clickable {
                 navController.navigate(Routes.bookOwnerScreen + "/${userId}")
@@ -590,7 +602,7 @@ fun UserRankingCard(
 //                    color = Color(0xFFEDC9AF)
 //                )
 //                Text(
-//                    text = "Number of comments: ${user.totalPoints}",
+//                    text = "Number of comments: $numberOfComments",
 //                    fontSize = 14.sp,
 //                    color = Color(0xFFEDC9AF)
 //                )

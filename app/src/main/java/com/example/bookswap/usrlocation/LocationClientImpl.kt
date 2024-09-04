@@ -20,15 +20,12 @@ class LocationClientImpl(
     private val context: Context, //za pristupanje resursima i servisima sistema
     private val client: FusedLocationProviderClient //pbezbedjuje objedinjene usluge lokacije
 ) : LocationClient {
-    override fun getLocationUpdates(interval: Long): Flow<Location> { //Flow je Kotlinova korutinska struktura koja omogucava emitovanje vise vrednosti tokom vremena.
+    override fun getLocationUpdates(interval: Long): Flow<Location> { //Flow je Kotlinova korutinska struktura koja omogucava emitovanje vise vrednosti tokom vremena
         return callbackFlow {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 throw LocationClient.LocationException("Nedostaje odobrenje za lokaciju")
             }
-//            if(!context.hasLocationPermission()){
-//                throw LocationClient.LocationException("Nedostaje odobrenje za lokaciju")
-//            }
 
             val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)

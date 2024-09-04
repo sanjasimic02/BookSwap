@@ -65,8 +65,8 @@ class BookRepositoryImpl : BookRepository{
     override suspend fun getAllBooks(): Resource<List<Book>> {
         return try{
             val snapshot = firestoreInstance.collection("books").get().await()
-            val beaches = snapshot.toObjects(Book::class.java)
-            Resource.Success(beaches)
+            val books = snapshot.toObjects(Book::class.java)
+            Resource.Success(books)
         }catch (e: Exception){
             e.printStackTrace()
             Resource.Failure(e)
@@ -79,8 +79,8 @@ class BookRepositoryImpl : BookRepository{
                 .whereEqualTo("userId", uid)
                 .get()
                 .await()
-            val beaches = snapshot.toObjects(Book::class.java)
-            Resource.Success(beaches)
+            val books = snapshot.toObjects(Book::class.java)
+            Resource.Success(books)
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)

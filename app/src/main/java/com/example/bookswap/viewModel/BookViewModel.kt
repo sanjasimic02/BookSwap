@@ -98,9 +98,8 @@ class BookViewModel : ViewModel() {
     // Ova funkcija menja status knjige u 'unavailable'
     fun updateBookStatus(bookId: String, newStatus: String) = viewModelScope.launch {
         try {
-
             repository.updateBookStatus(bookId, newStatus)
-            getAllBooks() //da bi mi azurirao flow !!!! valjda nije nista poremecenoooo!!!
+            getAllBooks() //da bi mi azurirao flow
         } catch (e: Exception) {
             Log.e("BookViewModel", "Error updating book status", e)
         }

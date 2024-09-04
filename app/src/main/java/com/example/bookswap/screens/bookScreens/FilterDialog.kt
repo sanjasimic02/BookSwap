@@ -38,7 +38,7 @@ import com.example.bookswap.screens.appComponents.RadiusSlider
 fun FilterDialog(
     isDialogOpen: MutableState<Boolean>,
     onDismissRequest: () -> Unit,
-    onApplyFilters: (Map<String, String>) -> Unit,
+    onApplyFilters: (Map<String, String>) -> Unit, //callback metoda, poziva se na apply click
     isMap : Boolean
 ) {
     if (isDialogOpen.value) {
@@ -77,7 +77,7 @@ fun FilterDialog(
                             Spacer(modifier = Modifier.height(20.dp))
                             FilterOptionRow(
                                 label = "Author:",
-                                filterOptions = filterOptions,
+                                filterOptions = filterOptions, //upisuje izabranu vrednost u mapu
                                 key = "author"
                             )
                             Spacer(modifier = Modifier.height(16.dp))
@@ -121,7 +121,7 @@ fun FilterDialog(
 
                             androidx.compose.material3.Button(
                                 onClick = {
-                                    onApplyFilters(filterOptions.value)
+                                    onApplyFilters(filterOptions.value) //poziv callback fje da primeni unete filtere
                                     Log.d("FilterDialog", "Filters applied: ${filterOptions.value}")
                                     onDismissRequest()
                                 },

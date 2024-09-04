@@ -61,8 +61,6 @@ fun TableScreen(
     bookViewModel : BookViewModel,
 ) {
     val currentUserId by remember { mutableStateOf(userViewModel.getCurrentUserId()) } //kad ima by moze da se direktno koristi kao string, umesto .value
-    //currentUserId:String
-
 
     //val context = LocalContext.current
     val bookCollection = bookViewModel.books.collectAsState()
@@ -77,6 +75,8 @@ fun TableScreen(
     val searchApplied = remember { mutableStateOf(false) }
     val searchQuery = remember { mutableStateOf("") }
 
+
+    //ovde nemam onu proveru da li je moja i da li je zauzeta, a na mapi imam, tako mi ima vise smisla
     LaunchedEffect(bookCollection.value, filtersApplied.value, searchQuery.value, searchApplied.value) {
         Log.d("TableScreen", "LaunchedEffect triggered")
         bookCollection.value.let {
@@ -89,7 +89,7 @@ fun TableScreen(
                         filteredBooksList.clear()
                         filteredBooksList.addAll(
                             it.result.filter { book ->
-                                (book.title.contains(searchQuery.value, ignoreCase = true)) && ( //umesto da mi title bude u filters
+                                (book.title.contains(searchQuery.value, ignoreCase = true)) && (
                                         (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
                                                 (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
                                                 (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true))
@@ -100,7 +100,6 @@ fun TableScreen(
                         filteredBooksList.clear()
                         filteredBooksList.addAll(
                             it.result.filter { book ->
-                                //(book.title.contains(searchQuery.value, ignoreCase = true)) || ( //umesto da mi title bude u filters
                                         (filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
                                         (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
                                         (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)

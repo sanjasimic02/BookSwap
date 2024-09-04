@@ -18,7 +18,7 @@ class UserAuthViewModel() : ViewModel()
 {
     val repo = AuthRepository()
     private val _signInFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
-    val signInFlow: StateFlow<Resource<FirebaseUser>?> = _signInFlow
+    val signInFlow: StateFlow<Resource<FirebaseUser>?> = _signInFlow //emituje stanje koje se odnosi na prijavljivanje korisnika
 
     private val _signUpFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
     val signUpFlow: StateFlow<Resource<FirebaseUser>?> = _signUpFlow
@@ -77,7 +77,7 @@ class UserAuthViewModel() : ViewModel()
         _signInFlow.value = Resource.Loading
         val result = repo.logIn(email, password)
         if (result is Resource.Success) {
-            getUserData() // Pozovite getUserData nakon uspešnog logovanja
+            getUserData() //dohvati podatke o korisniku
         }
         _signInFlow.value = result
     }
@@ -88,7 +88,7 @@ class UserAuthViewModel() : ViewModel()
         _signUpFlow.value = result
     }
 
-    fun logOut()
+    fun logOut() //reset svih stateFlow vrednosti
     {
         repo.logOut()
         _signInFlow.value = null

@@ -11,6 +11,7 @@ class StorageService( private val storage: FirebaseStorage)
         return try
         {
             val storageRef = storage.reference.child("profile_pictures/$uid.jpg")
+            //mogla bi kompresija da se odradi
             val uploadTask = storageRef.putFile(image).await()
             val downloadUrl = uploadTask.storage.downloadUrl.await()
             downloadUrl.toString()
@@ -21,21 +22,21 @@ class StorageService( private val storage: FirebaseStorage)
         }
     }
 
-    suspend fun uploadBookCoverImage(image: Uri) : String
-    {
-        return try
-        {
-            val fileName = "${System.currentTimeMillis()}.jpg"
-            val storageRef = storage.reference.child("book_cover_images/$fileName")
-            val uploadTask = storageRef.putFile(image).await()
-            val downloadUrl = uploadTask.storage.downloadUrl.await()
-            downloadUrl.toString()
-        }
-        catch (e: Exception) {
-            e.printStackTrace()
-            ""
-        }
-    }
+//    suspend fun uploadBookCoverImage(image: Uri) : String
+//    {
+//        return try
+//        {
+//            val fileName = "${System.currentTimeMillis()}.jpg"
+//            val storageRef = storage.reference.child("book_cover_images/$fileName")
+//            val uploadTask = storageRef.putFile(image).await()
+//            val downloadUrl = uploadTask.storage.downloadUrl.await()
+//            downloadUrl.toString()
+//        }
+//        catch (e: Exception) {
+//            e.printStackTrace()
+//            ""
+//        }
+//    }
 
     suspend fun uploadBookImages(
         images: List<Uri>

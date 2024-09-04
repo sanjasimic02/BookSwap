@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -67,6 +68,7 @@ fun UserProfileScreen1(
 ) {
 
     val buttonIsEnabled = remember { mutableStateOf(true) }
+    val showDialog = remember { mutableStateOf(false) }
 
     val currentUserState = viewModel.userByIdFlow.collectAsState()
     LaunchedEffect(userId) {
@@ -144,13 +146,11 @@ fun UserProfileScreen1(
                 )
 
                 Button(
-                    onClick = { //dodaj da iskoci mali screen da pita dal si siguran
-                        viewModel.logOut()
-                        navController.navigate(Routes.loginScreen)
+                    onClick = {
+                        showDialog.value = true
                     },
                     enabled = buttonIsEnabled.value,
                     modifier = Modifier
-                        //.size(width = 200.dp, height = 50.dp)
                         .fillMaxHeight(),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -167,9 +167,9 @@ fun UserProfileScreen1(
                         )
                     )
                 }
+
             }
         }
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -184,8 +184,10 @@ fun UserProfileScreen1(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = currentUser?.profileImg,
-                    contentDescription = null,
+                    model = currentUser?.profileImg, //URL string pointing to the image stored in Firebase Storage
+                    //u pozadini se radi fetch slike sa te lokacije
+                    // Coil handles the HTTP request, fetches the image from the provided URL, caches it, and then displays it within the AsyncImage composable
+                            contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(140.dp)
@@ -517,6 +519,40 @@ fun UserProfileScreen1(
 
             }
         }
+    }
 
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            //title = { Text(text = "Confirm Sign Out") },
+            text = { Text(
+                text = "Are you sure you want to sign out?",
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFEDC9AF),
+                )
+            )},
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog.value = false
+                        viewModel.logOut()
+                        navController.navigate(Routes.loginScreen)
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("No")
+                }
+            },
+            modifier = Modifier
+                .background(Color(0xFF6D4C41).copy(alpha = 0.2f), shape = RoundedCornerShape(6.dp))
+        )
     }
 }

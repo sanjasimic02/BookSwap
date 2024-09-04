@@ -18,7 +18,6 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,7 +42,7 @@ fun AddBookScreen(
     onDismiss: () -> Unit
 
 ) {
-    val bookFlow = bookViewModel.bookFlow.collectAsState()
+   // val bookFlow = bookViewModel.bookFlow.collectAsState()
 
     val title = remember { mutableStateOf("") }
     val author = remember { mutableStateOf("") }
@@ -51,12 +50,7 @@ fun AddBookScreen(
     val genre = remember { mutableStateOf("") }
     val language = remember { mutableStateOf("") }
 
-    val coverImage = remember { mutableStateOf(Uri.EMPTY) }
-    val isCoverImageError = remember { mutableStateOf(false) }
-
-
-    val bookImages = remember { mutableStateOf("") }
-    //var swapStatus by remember { mutableStateOf(TextFieldValue("")) } ja da ga postavim inicijalno na dostupan
+    //val bookImages = remember { mutableStateOf("") }
 
     val selectedMoreImages = remember {
         mutableStateOf<List<Uri>>(emptyList())
@@ -163,9 +157,9 @@ fun AddBookScreen(
                             language = language.value,
                             bookImages = selectedMoreImages.value
                         )
-                        //dodaje knjigu!!!
-                        //sad na profilu korisnika zelim da prikazem dostupne knjige, ali i na mapi??
-                        navController.popBackStack()
+                        //sad na profilu korisnika zelim da prikazem dostupne knjige, ali i na mapi
+                        //navController.popBackStack() ///vraca me na user profile, necu??
+                        onDismiss()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -181,8 +175,6 @@ fun AddBookScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
-            // "x" dugme u gornjem desnom uglu
             Box(
                 modifier = Modifier
                     .fillMaxSize()

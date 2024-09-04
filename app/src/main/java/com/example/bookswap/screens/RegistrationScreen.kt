@@ -2,6 +2,7 @@ package com.example.bookswap.screens
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,7 +61,9 @@ fun RegistrationScreen(
     val isPhoneNumberError = remember { mutableStateOf(false) }
 
     val profileImg = remember { mutableStateOf(Uri.EMPTY) }
-    val isIProfileImgError = remember { mutableStateOf(false) }
+    val isProfileImgError = remember { mutableStateOf(false) }
+    //val profileImgErrorText = remember { mutableStateOf("Profile image is required.") }
+
 
     val showPassword = remember { mutableStateOf(false) }
 
@@ -113,7 +118,14 @@ fun RegistrationScreen(
                         Spacer(modifier = Modifier.height(2.dp))
                         CustomLabel(label = "Choose your profile picture by clicking on the icon below:")
                         Spacer(modifier = Modifier.height(8.dp))
-                        UploadProfileImg(profileImg, isIProfileImgError)
+                        UploadProfileImg(profileImg, isProfileImgError)
+//                        if (isProfileImgError.value) {
+//                            Text(
+//                                text = profileImgErrorText.value,
+//                                color = Color.Red,
+//                                modifier = Modifier.padding(top = 4.dp)
+//                            )
+//                        }
                     }
                 }
 
@@ -146,9 +158,10 @@ fun RegistrationScreen(
 
                 Spacer(modifier = Modifier.height(2.dp))
                 CustomInput(
-                    hint = "+381600220423",
+                    hint = "0600220423",
                     value = phoneNumber,
                     isEmail = false,
+                    isNumber = true,
                     isError = isPhoneNumberError,
                     errorText = emailErrorText
                 )
@@ -167,7 +180,7 @@ fun RegistrationScreen(
                 Spacer(modifier = Modifier.height(2.dp))
                     RegisterButton(
                     onClick = {
-                        isIProfileImgError.value = false
+                        isProfileImgError.value = false
                         isEmailError.value = false
                         isPasswordError.value = false
                         isFullNameError.value = false
@@ -176,7 +189,7 @@ fun RegistrationScreen(
                         isLoading.value = true
 
                         if (profileImg.value == Uri.EMPTY) {
-                            isIProfileImgError.value = true
+                            isProfileImgError.value = true
                             isLoading.value = false
                         } else if (fullName.value.isEmpty()) {
                             isFullNameError.value = true
@@ -220,6 +233,8 @@ fun RegistrationScreen(
                         when (it) {
                             is Resource.Failure -> {
                                 isLoading.value = false
+                                isError.value = true
+                                errorText.value = it.exception.message.toString()
                                 Log.e("[ERROR]", it.exception.message.toString())
                             }
 
@@ -239,9 +254,24 @@ fun RegistrationScreen(
                             null -> Log.d("SignUpScreen", "SignUp flow doesn't exist!")
                         }
                     }
-
-
+                if (isError.value) {
+                    Text(
+                        text = errorText.value,
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
+            }
+        }
+        if (isLoading.value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF6D4C41).copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFF5E6CC))
+            }
         }
     }
 }

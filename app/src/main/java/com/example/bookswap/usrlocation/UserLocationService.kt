@@ -37,13 +37,13 @@ class LocationService : Service() {
     private lateinit var locationClient: LocationClient
     private val booksWithoutDuplicates = mutableSetOf<String>()
 
-    private lateinit var sharedPreferences: SharedPreferences//dodala
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onBind(intent: Intent?): IBinder? {
-        return null
+        return null //jer ovo nije Bound service
     }
 
-    override fun onCreate() {
+    override fun onCreate() { //1.
         super.onCreate()
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE) //dodala
         createNotificationChannel() //mora pre kreiranja obavestenja
@@ -53,21 +53,23 @@ class LocationService : Service() {
         )
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    //poziva se svaki put kada se servis pokrene
+    //zavisi od akcije koja je poslata kroz Intent
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int { //2.
         Log.d("LocationService", "Service started with action: ${intent?.action}")
 
-        when(intent?.action){
+        when(intent?.action){ //servis pokrece pracenje lokacije
             ACTION_START -> {
                 Log.d("LocationService", "Service started")
                 val notification = createNotification()
                 startForeground(NOTIFICATION_ID, notification)
                 start()
             }
-            ACTION_STOP -> {
+            ACTION_STOP -> { //zaustavi pracenje
                 Log.d("LocationService", "Service stopped")
                 stop()
             }
-            ACTION_FIND_NEARBY -> {
+            ACTION_FIND_NEARBY -> { //pracenje lokacije i provera blizine knjige
                 Log.d("NearbyService", "Service started")
                 val notification = createNotification()
                 startForeground(NOTIFICATION_ID, notification)
@@ -80,7 +82,7 @@ class LocationService : Service() {
     private fun start(
         bookIsNearby: Boolean = false
     ) {
-        locationClient.getLocationUpdates(3000L)
+        locationClient.getLocationUpdates(1000L) //pokrece pracenje lokacije
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
                 // Save the last known location in SharedPreferences
@@ -93,7 +95,7 @@ class LocationService : Service() {
                     putExtra(EXTRA_LOCATION_LATITUDE, location.latitude)
                     putExtra(EXTRA_LOCATION_LONGITUDE, location.longitude)
                 }
-                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent) //u MapScreen registrovan receiver
               if(bookIsNearby){
                    checkProximityToBooks(location.latitude, location.longitude)
               }
@@ -105,12 +107,11 @@ class LocationService : Service() {
         stopSelf()
     }
 
-    override fun onDestroy() {
+    override fun onDestroy() { //3.
 
-        // Retrieve the last known location
+        // poslednja poznata lokacija
         val lastLatitude = sharedPreferences.getString("last_latitude", null)?.toDoubleOrNull()
         val lastLongitude = sharedPreferences.getString("last_longitude", null)?.toDoubleOrNull()
-
         if (lastLatitude != null && lastLongitude != null) {
             val lastLocation = LatLng(lastLatitude, lastLongitude)
             // Do something with the last known location, if necessary
@@ -150,9 +151,9 @@ class LocationService : Service() {
         return NotificationCompat.Builder(this, notificationChannelId)
             .setContentTitle("Praćenje lokacije")
             .setContentText("Servis praćenja lokacije je pokrenut u pozadini")
-            .setSmallIcon(R.drawable.book_notif)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
+            .setSmallIcon(R.drawable.knjiga)
+            .setContentIntent(pendingIntent) //tap akcija
+            .setOngoing(true) //ne moze dismiss
             .build()
     }
 
@@ -177,29 +178,6 @@ class LocationService : Service() {
         //Log.d("BookProximity", "Distance to book: $distance meters")
         return distance
     }
-
-//    private fun checkProximityToBooks(userLatitude: Double, userLongitude: Double) {
-//        val firestore = FirebaseFirestore.getInstance()
-//        firestore.collection("books").get()
-//            .addOnSuccessListener { result ->
-//                for (document in result) {
-//                    val geoPoint = document.getGeoPoint("location")
-//                    val bookUserId = document.getString("userId")
-//                    val swapStatus = document.getString("swapStatus")
-//                    if (geoPoint != null && swapStatus == "available") { //nema info o korisniku jos, jer se servis aktivira pre logovanja && bookUserId != FirebaseAuth.getInstance().currentUser!!.uid
-//                        val distance = calculateHaversineDistance(userLatitude, userLongitude, geoPoint.latitude, geoPoint.longitude)
-//                        if (distance <= 1000 && !booksWithoutDuplicates.contains(document.id) ) { //1km udaljenost
-//                            alertBookNearby(document.getString("title") ?: "Book")
-//                            booksWithoutDuplicates.add(document.id)
-//                            Log.d("NearbyBook", document.toString())
-//                        }
-//                    }
-//                }
-//            }
-//            .addOnFailureListener { e ->
-//                Log.e("LocationService", "Error fetching books", e)
-//            }
-//    }
 
 
     private fun checkProximityToBooks(userLatitude: Double, userLongitude: Double) {
@@ -259,7 +237,7 @@ class LocationService : Service() {
             .build()
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NEARBY_BOOK_NOTIFICATION_ID, notification)
+        notificationManager.notify(NEARBY_BOOK_NOTIFICATION_ID, notification) //za prikaz notif
     }
 
 

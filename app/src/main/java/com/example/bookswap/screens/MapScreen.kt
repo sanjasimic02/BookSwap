@@ -73,6 +73,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -93,16 +96,22 @@ fun MapScreen(
     myLocation: MutableState<LatLng?> = remember { mutableStateOf(null) }
 ) {
 
+    //sa prez, za GoogleMap composable
+    val uiSettings by remember { mutableStateOf(MapUiSettings()) }
+    val properties by remember {
+        mutableStateOf(MapProperties(mapType = MapType.NORMAL))
+    }
+
     val context = LocalContext.current
     val currentUserId by remember { mutableStateOf(viewModel.getCurrentUserId()) }
 
-    //val currentUser = viewModel.currentUserFlow.collectAsState()
+    val bookCollection = bookViewModel.books.collectAsState()
+    val booksList = remember { mutableListOf<Book>() }
 
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     val isTrackingServiceEnabled = sharedPreferences.getBoolean("tracking_location", true)
     val lastLatitude = sharedPreferences.getString("last_latitude", null)?.toDoubleOrNull()
     val lastLongitude = sharedPreferences.getString("last_longitude", null)?.toDoubleOrNull()
-
 
     val isDialogOpen = remember { mutableStateOf(false) }
     val filters = remember { mutableStateOf(mapOf<String, String>()) }
@@ -167,9 +176,6 @@ fun MapScreen(
 //        }
 //    }
 
-    val bookCollection = bookViewModel.books.collectAsState()
-    val booksList = remember { mutableListOf<Book>() }
-
     if (!isTrackingServiceEnabled && lastLatitude != null && lastLongitude != null) {
         val lastLocation = LatLng(lastLatitude, lastLongitude)
         cameraPositionState.position = CameraPosition.fromLatLngZoom(lastLocation, 17f)
@@ -180,23 +186,25 @@ fun MapScreen(
 
     fun calculateDistance(start: MutableState<LatLng?>, end: GeoPoint): Float {
         val startLatLng = start.value ?: return Float.MAX_VALUE
-
         val endLatLng = LatLng(end.latitude, end.longitude)
-        val earthRadius = 6371 // Earth radius in kilometers
+        val earthRadius = 6371 // Earth radius km
 
+        //prevodjenje koordinata u radijane
         val lat1 = Math.toRadians(startLatLng.latitude)
         val lon1 = Math.toRadians(startLatLng.longitude)
         val lat2 = Math.toRadians(endLatLng.latitude)
         val lon2 = Math.toRadians(endLatLng.longitude)
 
+        //razlika u koordinatama
         val dLat = lat2 - lat1
         val dLon = lon2 - lon1
 
+        //Haversine formula
         val a = sin(dLat / 2).pow(2) +
                 cos(lat1) * cos(lat2) * sin(dLon / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-        return (earthRadius * c).toFloat()
+        return (earthRadius * c).toFloat() //km
     }
 
     LaunchedEffect(bookCollection.value, filtersApplied.value, searchQuery.value, searchApplied.value, filters.value) {
@@ -212,7 +220,7 @@ fun MapScreen(
                         filteredBooksList.addAll(
                             it.result.filter { book ->
                                 book.userId != currentUserId &&
-                                book.swapStatus == "available" && (book.title.contains(searchQuery.value, ignoreCase = true)) &&
+                                book.swapStatus == "available" && book.title.contains(searchQuery.value, ignoreCase = true) && //case insensitive
                                         ((filters.value["author"]?.let { book.author.contains(it, ignoreCase = true) } ?: true) &&
                                         (filters.value["genre"]?.let { book.genre.contains(it, ignoreCase = true) } ?: true) &&
                                                 (filters.value["language"]?.let { book.language.contains(it, ignoreCase = true) } ?: true)) &&
@@ -245,14 +253,10 @@ fun MapScreen(
                                         book.title.contains(searchQuery.value, ignoreCase = true)
                             }
                         )
-//                        if(filteredBooksList.size == 0)
-//                        {
-//                            Toast.makeText(context, "No results!", Toast.LENGTH_SHORT).show()
-//                        }
                     }
                     else {
                         filteredBooksList.clear()
-                        filteredBooksList.addAll(it.result)
+                        filteredBooksList.addAll(it.result) //regularna lista svih knjiga iz baze
                     }
                     Log.d("MapScreen", "Filtered books list: ${filteredBooksList.toList()}")
                     Log.d("MapScreen", "Number of books: ${filteredBooksList.size}")
@@ -272,7 +276,7 @@ fun MapScreen(
         object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
 
-                if (intent?.action == LocationService.ACTION_LOCATION_UPDATE) {
+                if (intent?.action == LocationService.ACTION_LOCATION_UPDATE) { //osluskuje promene
                     val latitude =
                         intent.getDoubleExtra(LocationService.EXTRA_LOCATION_LATITUDE, 0.0)
                     val longitude =
@@ -311,7 +315,7 @@ fun MapScreen(
             AddBookScreen(
                 bookViewModel = bookViewModel,
                 navController = navController,
-                location = myLocation,
+                location = myLocation, //na korisnikovu trenutnu lokaciju
                 onDismiss = { showSheet.value = false } // skriva sheet
             )
         },
@@ -508,7 +512,9 @@ fun MapScreen(
             ) {
                 GoogleMap(
                     cameraPositionState = cameraPositionState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    properties = properties,
+                    uiSettings = uiSettings
                 ) {
                     myLocation.value?.let { location ->
                         Marker(
@@ -523,7 +529,7 @@ fun MapScreen(
                     }
 
                     filteredBooksList.forEach { book ->
-                        val bookLocation = LatLng(book.location.latitude, book.location.longitude)
+                        //val bookLocation = LatLng(book.location.latitude, book.location.longitude)
                         val markerIcon = if (book.userId == currentUserId) {
                             bitmapDescriptorFromVector2(context, R.drawable.book_marker)
                         } else {
@@ -551,7 +557,7 @@ fun MapScreen(
             FilterDialog(
                 isDialogOpen = isDialogOpen,
                 onDismissRequest = { isDialogOpen.value = false },
-                onApplyFilters = { newFilters ->
+                onApplyFilters = { newFilters -> //callback fja
                     filters.value = newFilters
                     Log.d("MapScreen", "Filters: ${filters.value}")
                     filtersApplied.value = true

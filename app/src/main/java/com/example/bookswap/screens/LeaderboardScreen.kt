@@ -58,15 +58,12 @@ fun LeaderboardScreen(
         when (val it = allUsersCollection?.value) {
             is Resource.Success -> {
                 users.clear()
-                users.addAll(it.result.sortedByDescending { user -> user.totalPoints })
+                users.addAll(it.result.sortedByDescending { user -> user.totalPoints }) //samo sortirani u opadajuci po poenima
             }
-
             is Resource.Failure -> {
             }
-
             Resource.Loading -> {
             }
-
             null -> {}
         }
     }
@@ -76,16 +73,7 @@ fun LeaderboardScreen(
         .background(Color(0xFFFAF3E0))
     ) {
         if (users.isEmpty()) {
-//            //LOADING umesto ovog!!!
-//            Text(
-//                text = "No users found",
-//                modifier = Modifier.align(Alignment.Center),
-//                style = TextStyle(
-//                    color = Color.Gray,
-//                    fontSize = 16.sp,
-//                    fontWeight = FontWeight.Bold
-//                )
-//            )
+            //loading
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
@@ -154,7 +142,6 @@ fun LeaderboardScreen(
                                     modifier = Modifier.size(50.dp)
                                 )
                             }
-                            //Spacer(modifier = Modifier.width(2.dp))
                         }
                     }
                 }

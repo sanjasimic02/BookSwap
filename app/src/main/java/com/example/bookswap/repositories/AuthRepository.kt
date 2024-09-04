@@ -88,7 +88,8 @@ class AuthRepository : IAuthRepository
 
                 val db = FirebaseFirestore.getInstance()
 
-                val userDocRef = db.collection("users").document(uid)
+                val userDocRef = db.collection("users").document(uid) //ako kolekcija ne postoji bice kreirana kada prvi put dodam dokument u nju
+                //dobijam referencu na specifican dokument u kolekciji
                 val userSnapshot = userDocRef.get().await()
 
                 if (userSnapshot.exists())
@@ -173,7 +174,7 @@ class AuthRepository : IAuthRepository
                 .await()
 
             if (userDocument.exists()) {
-                val phoneNumber = userDocument.getString("phoneNumber") // Pretpostavljamo da je broj telefona spremljen pod "phoneNumber"
+                val phoneNumber = userDocument.getString("phoneNumber")
 
                 if (!phoneNumber.isNullOrEmpty()) {
                     // Kreiraj Intent za otvaranje aplikacije za telefoniranje
@@ -185,11 +186,9 @@ class AuthRepository : IAuthRepository
                     context.startActivity(intent)
                 } else {
                     // Broj telefona nije pronađen
-
                 }
             } else {
                 // Korisnik sa datim userId ne postoji
-
             }
         } catch (e: Exception) {
             // Odlazi sa greškom

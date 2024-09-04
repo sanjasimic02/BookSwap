@@ -96,6 +96,7 @@ fun BookDetailsScreen(
         sheetContent = {
             AddCommentScreen(
                 bookViewModel = bookViewModel,
+                userAuthViewModel = userAuthViewModel,
                 book = book,
                 isBookOwner = book.userId == currentUserId,
                 onDismiss = { showSheet.value = false } // skriva sheet
@@ -123,16 +124,23 @@ fun BookDetailsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.Text(
-                        text = "bookSwap",
-                        style = TextStyle(
-                            fontSize = 18.sp,
-                            fontStyle = FontStyle.Italic,
-                            color = Color(0xFFEDC9AF)
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = "bookSwap",
+                            style = TextStyle(
+                                fontSize = 18.sp,
+                                fontStyle = FontStyle.Italic,
+                                color = Color(0xFFEDC9AF)
+                            ),
+                            modifier = Modifier
+                                .padding(6.dp)
+                                .align(Alignment.CenterStart) // Centrira vertikalno
                         )
-                    )
+                    }
 
-                    if(!isBookOwner) {
+                    if (!isBookOwner) {
                         androidx.compose.material3.Button(
                             onClick = {
                                 navController.navigate("${Routes.bookOwnerScreen}/${book.userId}")
@@ -157,6 +165,7 @@ fun BookDetailsScreen(
                     }
                 }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
             if(book.swapStatus == "unavailable") {
@@ -313,7 +322,7 @@ fun BookDetailsScreen(
                             .height(50.dp)
                             .padding(horizontal = 16.dp),
                         colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41)),
-                        enabled = isButtonEnabled // Control button enabled state
+                        enabled = isButtonEnabled
                     ) {
                         Text(
                             text = "Rent Book", style = TextStyle(
@@ -326,8 +335,6 @@ fun BookDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-
-                //Spacer(modifier = Modifier.weight(1f))
 
                 Button(
                     onClick =
@@ -353,7 +360,6 @@ fun BookDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 //KOMENTARI
-
                 Button(
                     onClick = {
                         showSheet.value = true
@@ -373,322 +379,7 @@ fun BookDetailsScreen(
                         )
                     )
                 }
-
-//                LazyColumn(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 16.dp)
-//                ) {
-//                    items(book.comments) { comment ->
-//                        Column(
-//                            modifier = Modifier.padding(vertical = 8.dp)
-//                        ) {
-//                            Text(
-//                                text = "Anonymous",
-//                                style = TextStyle(
-//                                    fontSize = 16.sp,
-//                                    fontWeight = FontWeight.Bold,
-//                                    color = Color(0xFF3E2723)
-//                                )
-//                            )
-//                            Text(
-//                                text = comment.comment,
-//                                style = TextStyle(
-//                                    fontSize = 16.sp,
-//                                    color = Color(0xFF3E2723)
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                Spacer(modifier = Modifier.height(16.dp))
-//
-//                // Add Comment Input
-//                if (!isBookOwner) {
-//                    TextField(
-//                        value = newComment,
-//                        onValueChange = setNewComment,
-//                        label = { Text("Add your comment") },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 16.dp)
-//                    )
-//
-//                    Button(
-//                        onClick = { handleAddComment() },
-//                        modifier = Modifier
-//                            .align(Alignment.CenterHorizontally)
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 16.dp)
-//                            .height(50.dp),
-//                        colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41))
-//                    ) {
-//                        Text(
-//                            text = "Submit Comment",
-//                            style = TextStyle(
-//                                fontSize = 16.sp,
-//                                fontWeight = FontWeight.Bold,
-//                                color = Color(0xFFEDC9AF),
-//                            )
-//                        )
-//                    }
-//
-//                    Spacer(modifier = Modifier.height(16.dp))
-//                }
-
-
-
             }
         }
     }
 }
-//    LazyColumn(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(Color(0xFFFAF3E0))
-//            .padding(16.dp)
-//    ) {
-//        // Book Details
-//        item {
-//            Column(
-//                modifier = Modifier
-//                    .clip(RoundedCornerShape(8.dp))
-//                    .background(Color(0xFFF5F5DC))
-//                    .padding(16.dp)
-//            ) {
-//                Text(
-//                    text = book.title,
-//                    style = TextStyle(
-//                        fontSize = 32.sp,
-//                        color = Color(0xFF3E2723),
-//                        fontFamily = MaterialTheme.typography.h4.fontFamily
-//                    ),
-//                    modifier = Modifier.align(Alignment.CenterHorizontally)
-//                )
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Text(
-//                    text = "By ${book.author}",
-//                    style = TextStyle(
-//                        fontSize = 20.sp,
-//                        color = Color(0xFF3E2723),
-//                        fontFamily = MaterialTheme.typography.subtitle1.fontFamily,
-//                        fontStyle = FontStyle.Italic
-//                    ),
-//                    modifier = Modifier.align(Alignment.CenterHorizontally)
-//                )
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Divider(color = Color(0xFF8D6E63), thickness = 1.dp)
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Text(
-//                    text = "Genre: ${book.genre}",
-//                    style = TextStyle(
-//                        fontSize = 16.sp,
-//                        color = Color(0xFF3E2723),
-//                        fontFamily = MaterialTheme.typography.body1.fontFamily
-//                    )
-//                )
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Divider(color = Color(0xFF8D6E63), thickness = 1.dp)
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Text(
-//                    text = "Language: ${book.language}",
-//                    style = TextStyle(
-//                        fontSize = 16.sp,
-//                        color = Color(0xFF3E2723),
-//                        fontFamily = MaterialTheme.typography.body1.fontFamily
-//                    )
-//                )
-//                Spacer(modifier = Modifier.height(16.dp))
-//
-//                Divider(color = Color(0xFF8D6E63), thickness = 1.dp)
-//                Spacer(modifier = Modifier.height(16.dp))
-//
-//                Text(
-//                    text = book.description,
-//                    style = TextStyle(
-//                        fontSize = 16.sp,
-//                        color = Color(0xFF3E2723),
-//                        fontFamily = MaterialTheme.typography.body1.fontFamily,
-//                        fontStyle = FontStyle.Italic
-//                    )
-//                )
-//                Spacer(modifier = Modifier.height(16.dp))
-//
-//                // Book Images
-//                if (book.bookImages.isNotEmpty()) {
-//                    LazyRow(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(200.dp)
-//                            .padding(vertical = 16.dp)
-//                    ) {
-//                        items(book.bookImages) { imageUrl ->
-//                            Image(
-//                                painter = rememberImagePainter(data = imageUrl),
-//                                contentDescription = null,
-//                                modifier = Modifier
-//                                    .size(150.dp)
-//                                    .padding(horizontal = 8.dp)
-//                                    .clip(RoundedCornerShape(8.dp)),
-//                                contentScale = ContentScale.Crop
-//                            )
-//                        }
-//                    }
-//                }
-//                Spacer(modifier = Modifier.height(16.dp))
-//            }
-//        }
-//
-//        // Contact and Rent Buttons
-//        if (!isBookOwner) {
-//            item {
-//                Button(
-//                    onClick = {
-//                        scope.launch {
-//                            if (book.userId.isNotEmpty()) {
-//                                userAuthViewModel.contactOwner(context, book.userId)
-//                            } else {
-//                                Toast.makeText(
-//                                    context,
-//                                    "Phone number is not available",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-//                            }
-//                        }
-//                    },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(50.dp)
-//                        .padding(horizontal = 16.dp),
-//                    colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41))
-//                ) {
-//                    Text(
-//                        text = "Contact Owner",
-//                        style = TextStyle(
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color(0xFFEDC9AF)
-//                        )
-//                    )
-//                }
-//                Spacer(modifier = Modifier.height(16.dp))
-//
-//                Button(
-//                    onClick = { handleRentBookClick() },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(50.dp)
-//                        .padding(horizontal = 16.dp),
-//                    colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41))
-//                ) {
-//                    Text(
-//                        text = "Rent Book",
-//                        style = TextStyle(
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color(0xFFEDC9AF)
-//                        )
-//                    )
-//                }
-//                Spacer(modifier = Modifier.height(16.dp))
-//            }
-//        }
-//
-//        // Back Button
-//        item {
-//            Button(
-//                onClick = onBack,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(50.dp)
-//                    .padding(horizontal = 16.dp),
-//                colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41))
-//            ) {
-//                Text(
-//                    text = "Back to Map",
-//                    style = TextStyle(
-//                        fontSize = 16.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color(0xFFEDC9AF)
-//                    )
-//                )
-//            }
-//            Spacer(modifier = Modifier.height(16.dp))
-//        }
-//
-//        // Comments Section
-//        item {
-//            Text(
-//                text = "Comments",
-//                style = TextStyle(
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    color = Color(0xFF6D4C41)
-//                ),
-//                modifier = Modifier.padding(16.dp)
-//            )
-//        }
-//
-//        // List of Comments
-//        items(book.comments) { comment ->
-//            Column(
-//                modifier = Modifier.padding(vertical = 8.dp)
-//            ) {
-//                Text(
-//                    text = "Anonymous",
-//                    style = TextStyle(
-//                        fontSize = 16.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color(0xFF3E2723)
-//                    )
-//                )
-//                Text(
-//                    text = comment.comment,
-//                    style = TextStyle(
-//                        fontSize = 16.sp,
-//                        color = Color(0xFF3E2723)
-//                    )
-//                )
-//            }
-//            Spacer(modifier = Modifier.height(16.dp))
-//        }
-//
-//        // Add Comment Input
-//        if (!isBookOwner) {
-//            item {
-//                TextField(
-//                    value = newComment,
-//                    onValueChange = setNewComment,
-//                    label = { Text("Add your comment") },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 16.dp)
-//                )
-//                Button(
-//                    onClick = { handleAddComment() },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(50.dp)
-//                        .padding(horizontal = 16.dp),
-//                    colors = ButtonDefaults.buttonColors(Color(0xFF6D4C41))
-//                ) {
-//                    Text(
-//                        text = "Submit Comment",
-//                        style = TextStyle(
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color(0xFFEDC9AF)
-//                        )
-//                    )
-//                }
-//                Spacer(modifier = Modifier.height(16.dp))
-//            }
-//        }
-//    }
-//}

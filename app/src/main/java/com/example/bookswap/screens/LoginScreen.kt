@@ -1,6 +1,7 @@
 package com.example.bookswap.screens
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,9 +39,6 @@ import com.example.bookswap.screens.appComponents.Heading
 import com.example.bookswap.screens.appComponents.Heading2
 import com.example.bookswap.screens.appComponents.Password
 import com.example.bookswap.viewModel.UserAuthViewModel
-import com.google.gson.Gson
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
 fun LoginScreen(
@@ -62,7 +61,7 @@ fun LoginScreen(
     }
     val currUserData = viewModel.currentUserFlow.collectAsState()
 
-
+    val genericError = remember { mutableStateOf("") }
 
     BSBackground {
         Box(
@@ -106,18 +105,35 @@ fun LoginScreen(
                     isError = isPasswordError,
                     errorText = passwordErrorText
                 )
+
+                // Prikazivanje generičke greške
+                if (genericError.value.isNotEmpty()) {
+                    Text(
+                        text = genericError.value,
+                        color = Color.Red,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            //fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
                         isEmailError.value = false
                         isPasswordError.value = false
+                        genericError.value = ""
                         isLoading.value = true
 
                         if (email.value.isEmpty()) {
                             isEmailError.value = true
+                            emailErrorText.value = "Email is required."
                             isLoading.value = false
                         } else if (password.value.isEmpty()) {
                             isPasswordError.value = true
+                            passwordErrorText.value = "Password is required."
                             isLoading.value = false
                         } else {
                             viewModel.logIn(
@@ -155,13 +171,13 @@ fun LoginScreen(
                         navController.navigate(Routes.registrationScreen)
                     }
                 )
-
             }
 
             LaunchedEffect(signInFlow.value) {
                 when (signInFlow.value) {
                     is Resource.Failure -> {
                         isLoading.value = false
+                        genericError.value = "Invalid email or password. Please try again."
                     }
                     is Resource.Success -> {
                         Log.d("[DEBUG]", "Login successful, fetching user data.")
@@ -181,22 +197,17 @@ fun LoginScreen(
                 when (val userResource = currUserData.value) {
                     is Resource.Success -> {
                         Log.d("[DEBUG]", "User data fetched successfully.")
+
                         val user = userResource.result
                         isLoading.value = false
+                        navController.navigate(Routes.userScreen1 + "/${user.id}")
 
-                        //currentUser.value?.let { user ->
-                            val currUserJSON = Gson().toJson(user)
-                            val encodedUsr = URLEncoder.encode(currUserJSON, StandardCharsets.UTF_8.toString())
-                            Log.d("[DEBUG]", "Navigating to: ${Routes.userScreen + "/$encodedUsr"}")
-                            navController.navigate(Routes.userScreen + "/$encodedUsr") {
-                                popUpTo(Routes.loginScreen) { inclusive = true }
-                            }
-                        //}
                     }
                     is Resource.Failure -> {
                         Log.d("[DEBUG]", "Failed to fetch user data.")
                         currentUser.value = null
                         isLoading.value = false
+                        genericError.value = "Failed to fetch user data. Please try again."
                     }
                     is Resource.Loading -> {
                         isLoading.value = true
@@ -206,6 +217,16 @@ fun LoginScreen(
                         Log.d("[DEBUG]", "currUserData is null")
                     }
                 }
+            }
+        }
+        if (isLoading.value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF6D4C41).copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFF5E6CC))
             }
         }
     }

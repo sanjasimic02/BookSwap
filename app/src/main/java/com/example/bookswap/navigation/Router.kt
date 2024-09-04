@@ -1,5 +1,6 @@
 package com.example.bookswap.navigation
 
+//import com.example.bookswap.screens.UserProfileScreen
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -11,7 +12,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.bookswap.models.User
 import com.example.bookswap.repositories.Resource
 import com.example.bookswap.screens.BookOwnerScreen
 import com.example.bookswap.screens.LeaderboardScreen
@@ -21,13 +21,11 @@ import com.example.bookswap.screens.RegistrationScreen
 import com.example.bookswap.screens.ServiceSettings
 import com.example.bookswap.screens.StartScreen
 import com.example.bookswap.screens.TableScreen
-import com.example.bookswap.screens.UserProfileScreen
 import com.example.bookswap.screens.UserProfileScreen1
 import com.example.bookswap.screens.bookScreens.BookDetailsScreen
 import com.example.bookswap.viewModel.BookViewModel
 import com.example.bookswap.viewModel.UserAuthViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.gson.Gson
 import com.google.maps.android.compose.rememberCameraPositionState
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -50,18 +48,18 @@ fun Router(
         composable(Routes.startScreen) {
             StartScreen(viewModel = viewModel, navController = navController)
         }
-        composable(
-            route = Routes.userScreen + "/{currentUser}",
-            arguments = listOf(navArgument("currentUser")
-            {
-                type = NavType.StringType
-            })
-        ) {currBackStack ->
-            val currentUserJSON = currBackStack.arguments?.getString("currentUser")
-            val currentUser = Gson().fromJson(currentUserJSON, User::class.java)
-            val isCorrect = FirebaseAuth.getInstance().currentUser?.uid == currentUser.id
-            UserProfileScreen(viewModel = viewModel, navController = navController, bookViewModel = bookViewModel, currentUser = currentUser, isCorrect = isCorrect)
-        }
+//        composable(
+//            route = Routes.userScreen + "/{currentUser}",
+//            arguments = listOf(navArgument("currentUser")
+//            {
+//                type = NavType.StringType
+//            })
+//        ) {currBackStack ->
+//            val currentUserJSON = currBackStack.arguments?.getString("currentUser")
+//            val currentUser = Gson().fromJson(currentUserJSON, User::class.java)
+//            val isCorrect = FirebaseAuth.getInstance().currentUser?.uid == currentUser.id
+//            UserProfileScreen(viewModel = viewModel, navController = navController, bookViewModel = bookViewModel, currentUser = currentUser, isCorrect = isCorrect)
+//        }
         composable(Routes.userScreen1 + "/{userId}") {backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             UserProfileScreen1(

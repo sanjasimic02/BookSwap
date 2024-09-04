@@ -167,8 +167,8 @@ fun ServiceSettings(
         // Tracking services box
         Box(
             modifier = Modifier
-                .width(350.dp) // Postavite željenu širinu
-                .align(Alignment.CenterHorizontally) // Centrirajte Box horizontalno
+                .width(350.dp)
+                .align(Alignment.CenterHorizontally)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color.White)
                 .padding(16.dp)

@@ -1,5 +1,6 @@
 package com.example.bookswap.screens.bookScreens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,12 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bookswap.models.Book
 import com.example.bookswap.models.Comment
+import com.example.bookswap.repositories.Resource
 import com.example.bookswap.viewModel.BookViewModel
+import com.example.bookswap.viewModel.UserAuthViewModel
 
 
 @Composable
 fun AddCommentScreen(
     bookViewModel : BookViewModel,
+    userAuthViewModel: UserAuthViewModel,
     book: Book,
     isBookOwner: Boolean,
     onDismiss: () -> Unit
@@ -42,23 +46,30 @@ fun AddCommentScreen(
     val (newComment, setNewComment) = remember { mutableStateOf("") }
     val commentState = bookViewModel.specificBookComments.collectAsState()
 
-    // Load comments for this specific book
+    val currentUserFlow = userAuthViewModel.currentUserFlow.collectAsState()
+    val currentUser = when (val result = currentUserFlow.value) {
+        is Resource.Success -> result.result
+        is Resource.Failure -> {
+            Log.e("User data:", result.exception.message ?: "Unknown error")
+            null
+        }
+        else -> null
+    }
+
     LaunchedEffect(book.id) {
         bookViewModel.loadCommentsForBook(book.id)
     }
 
     fun handleAddComment() {
-        //val currentUser = userAuthViewModel.currentUser
         //if (newComment.isNotBlank()) {
             val comment = Comment(
-                //userId = currentUserId,
-                //userName = userAuthViewModel.currentUser?.fullName ?: "Unknown User",
+                userName = currentUser?.fullName ?: "Anonymous",
                 comment = newComment
             )
-       // }
+        //}
         bookViewModel.addCommentToBook(book.userId, book.id, comment)
-        setNewComment("") // Clear the input field
-        //bookViewModel.loadCommentsForBook(book.id) // Refresh comments
+        setNewComment("") //ocisti input
+        //bookViewModel.loadCommentsForBook(book.id) // Refresh
     }
 
     Box(
@@ -90,7 +101,7 @@ fun AddCommentScreen(
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Anonymous",
+                            text = comment.userName.ifBlank { "Anonymous" },
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
